@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import CharacterCount from '@tiptap/extension-character-count'
 import Placeholder from '@tiptap/extension-placeholder'
+import Link from '@tiptap/extension-link'
 import { useAuthStore } from '../stores/authStore'
 import { useDocumentStore } from '../stores/documentStore'
 import { LoadingSpinner } from '../components/LoadingSpinner'
@@ -18,7 +19,8 @@ import {
   ListOrderedIcon,
   SaveIcon,
   ArrowLeftIcon,
-  FileTextIcon 
+  FileTextIcon,
+  LinkIcon
 } from 'lucide-react'
 
 export function EditorPage() {
@@ -37,6 +39,8 @@ export function EditorPage() {
 
   const [title, setTitle] = useState('')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false)
+  const [linkUrl, setLinkUrl] = useState('')
 
   const editor = useEditor({
     extensions: [
@@ -51,6 +55,11 @@ export function EditorPage() {
         showOnlyWhenEditable: true,
         showOnlyCurrent: false,
       }),
+      Link.configure({
+        openOnClick: true,
+        autolink: true,
+        linkOnPaste: true,
+      }),
     ],
     content: '<p></p>',
     editorProps: {
@@ -58,6 +67,7 @@ export function EditorPage() {
         class: 'editor-content',
         spellcheck: 'true',
         style: 'white-space: pre-wrap;',
+        'data-gramm': 'false',
       },
     },
     parseOptions: {
@@ -69,6 +79,28 @@ export function EditorPage() {
       setHasUnsavedChanges(true)
     },
   })
+
+  const openLinkSelector = useCallback(() => {
+    if (!editor) return;
+    const { selection } = editor.state
+    if (selection.empty) return
+
+    const url = editor.getAttributes('link').href || ''
+    setLinkUrl(url)
+    setIsLinkSelectorOpen(true)
+  }, [editor])
+
+  const setLink = useCallback(() => {
+    if (!editor) return;
+
+    if (linkUrl === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    } else {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl }).run()
+    }
+    setIsLinkSelectorOpen(false)
+    setLinkUrl('')
+  }, [editor, linkUrl])
 
   // Load document on mount
   useEffect(() => {
@@ -221,6 +253,20 @@ export function EditorPage() {
               <ItalicIcon className="w-4 h-4" />
             </button>
 
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                openLinkSelector();
+              }}
+              className={`p-2 rounded-md ${
+                editor?.isActive('link') 
+                  ? 'bg-primary-100 text-primary-700' 
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <LinkIcon className="w-4 h-4" />
+            </button>
+
             <div className="w-px h-6 bg-gray-300 mx-2"></div>
 
             <button
@@ -286,6 +332,37 @@ export function EditorPage() {
       </div>
 
       {/* Editor */}
+      {editor && (
+        <BubbleMenu 
+          editor={editor} 
+          tippyOptions={{ 
+            duration: 100, 
+            onHide: () => setIsLinkSelectorOpen(false) 
+          }}
+          shouldShow={() => !!editor && editor.state.selection.from !== editor.state.selection.to && isLinkSelectorOpen}
+          className="bg-white border border-gray-200 rounded-md shadow-lg p-2 flex items-center space-x-2"
+        >
+          <input
+            type="url"
+            value={linkUrl}
+            onChange={(e) => setLinkUrl(e.target.value)}
+            placeholder="Enter URL"
+            className="bg-transparent border-none focus:outline-none focus:ring-0 text-sm p-1"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                setLink()
+              }
+            }}
+          />
+          <button
+            onClick={setLink}
+            className="px-3 py-1 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none"
+          >
+            Apply
+          </button>
+        </BubbleMenu>
+      )}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="prose w-full max-w-none">
           <EditorContent editor={editor} />
