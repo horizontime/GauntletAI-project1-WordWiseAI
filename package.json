@@ -10,19 +10,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.38.5",
+    "@tiptap/extension-bullet-list": "^2.14.0",
+    "@tiptap/extension-character-count": "^2.1.13",
+    "@tiptap/extension-heading": "^2.14.0",
+    "@tiptap/extension-list-item": "^2.14.0",
+    "@tiptap/extension-ordered-list": "^2.14.0",
+    "@tiptap/extension-placeholder": "^2.1.13",
+    "@tiptap/extension-text-align": "^2.14.0",
+    "@tiptap/extension-text-style": "^2.1.13",
+    "@tiptap/extension-typography": "^2.14.0",
+    "@tiptap/react": "^2.1.13",
+    "@tiptap/starter-kit": "^2.1.13",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
-    "@supabase/supabase-js": "^2.38.5",
-    "zustand": "^4.4.7",
-    "@tiptap/react": "^2.1.13",
-    "@tiptap/starter-kit": "^2.1.13",
-    "@tiptap/extension-text-style": "^2.1.13",
-    "@tiptap/extension-character-count": "^2.1.13",
-    "@tiptap/extension-placeholder": "^2.1.13",
-    "lucide-react": "^0.294.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "tailwind-merge": "^2.0.0",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
@@ -39,4 +45,4 @@
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
   }
-} 
+}

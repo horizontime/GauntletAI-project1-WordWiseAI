@@ -14,6 +14,8 @@ import {
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
+  ListIcon,
+  ListOrderedIcon,
   SaveIcon,
   ArrowLeftIcon,
   FileTextIcon 
@@ -262,6 +264,32 @@ export function EditorPage() {
               }`}
             >
               <Heading3Icon className="w-4 h-4" />
+            </button>
+
+            <div className="w-px h-6 bg-gray-300 mx-2"></div>
+
+            {/* Bullet List */}
+            <button
+              onClick={() => editor?.chain().focus().toggleBulletList().run()}
+              className={`p-2 rounded-md ${
+                editor?.isActive('bulletList')
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <ListIcon className="w-4 h-4" />
+            </button>
+
+            {/* Numbered List */}
+            <button
+              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+              className={`p-2 rounded-md ${
+                editor?.isActive('orderedList')
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <ListOrderedIcon className="w-4 h-4" />
             </button>
           </div>
         </div>
