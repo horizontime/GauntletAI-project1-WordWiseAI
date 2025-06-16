@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -23,4 +25,8 @@ export interface Document {
   content: string
   created_at: string
   updated_at: string
+  /** Indicates if the document has been moved to Trash */
+  is_deleted: boolean
+  /** Timestamp (ISO string) when the document was moved to Trash. Null when not deleted. */
+  deleted_at: string | null
 } 

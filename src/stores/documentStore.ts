@@ -6,6 +6,10 @@ interface DocumentState {
   currentDocument: Document | null
   loading: boolean
   saving: boolean
+  trashedDocuments: Document[]
+  fetchTrashedDocuments: (userId: string) => Promise<void>
+  restoreDocument: (documentId: string) => Promise<void>
+  permanentDeleteDocument: (documentId: string) => Promise<void>
   fetchDocuments: (userId: string) => Promise<void>
   createDocument: (userId: string, title?: string) => Promise<Document | null>
   loadDocument: (documentId: string) => Promise<void>
@@ -20,6 +24,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   currentDocument: null,
   loading: false,
   saving: false,
+  trashedDocuments: [],
 
   fetchDocuments: async (userId: string) => {
     set({ loading: true })
@@ -28,6 +33,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         .from('documents')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_deleted', false)
         .order('updated_at', { ascending: false })
 
       if (error) throw error
@@ -116,7 +122,7 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     try {
       const { error } = await supabase
         .from('documents')
-        .delete()
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() })
         .eq('id', documentId)
 
       if (error) throw error
@@ -146,6 +152,70 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
           content 
         } 
       })
+    }
+  },
+
+  fetchTrashedDocuments: async (userId: string) => {
+    set({ loading: true })
+    try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+
+      await supabase
+        .from('documents')
+        .delete()
+        .eq('user_id', userId)
+        .eq('is_deleted', true)
+        .lt('deleted_at', thirtyDaysAgo)
+
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_deleted', true)
+        .order('deleted_at', { ascending: false })
+
+      if (error) throw error
+
+      set({ trashedDocuments: data || [], loading: false })
+    } catch (error) {
+      console.error('Error fetching trashed documents:', error)
+      set({ loading: false })
+    }
+  },
+
+  restoreDocument: async (documentId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .update({ is_deleted: false, deleted_at: null, updated_at: new Date().toISOString() })
+        .eq('id', documentId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      const { trashedDocuments, documents } = get()
+      const updatedTrash = trashedDocuments.filter(doc => doc.id !== documentId)
+      set({ trashedDocuments: updatedTrash, documents: [data, ...documents] })
+    } catch (error) {
+      console.error('Error restoring document:', error)
+    }
+  },
+
+  permanentDeleteDocument: async (documentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', documentId)
+
+      if (error) throw error
+
+      const { trashedDocuments } = get()
+      const updatedTrash = trashedDocuments.filter(doc => doc.id !== documentId)
+      set({ trashedDocuments: updatedTrash })
+    } catch (error) {
+      console.error('Error permanently deleting document:', error)
     }
   },
 })) 
