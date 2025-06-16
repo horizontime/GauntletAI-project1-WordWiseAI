@@ -31,6 +31,14 @@ export function TrashPage() {
     })
   }
 
+  // Returns a plain-text preview (first ~100 chars) from the document HTML content
+  const getPreview = (content: string, maxLength: number = 100) => {
+    if (!content) return ''
+    // Strip HTML tags to get plain text
+    const plainText = content.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    return plainText.length > maxLength ? `${plainText.slice(0, maxLength)}…` : plainText
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
@@ -89,6 +97,13 @@ export function TrashPage() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Content preview */}
+                  {doc.content && (
+                    <p className="text-sm text-gray-700 mb-4">
+                      {getPreview(doc.content)}
+                    </p>
+                  )}
 
                   <div className="text-sm text-gray-600 space-y-1 mt-auto">
                     <p>
