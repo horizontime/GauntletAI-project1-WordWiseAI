@@ -15,4 +15,112 @@
   * {
     box-sizing: border-box;
   }
+}
+
+@layer components {
+  /* TipTap Editor Styles */
+  .ProseMirror {
+    outline: none !important;
+    padding: 1.5rem;
+    min-height: 600px;
+    border: 2px solid #d1d5db !important;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #374151;
+    cursor: text;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .ProseMirror:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+
+  .ProseMirror:hover {
+    border-color: #9ca3af !important;
+  }
+
+  /* Ensure editor container has proper styling */
+  .editor-content,
+  [data-tiptap-editor] {
+    border: 2px solid #d1d5db;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+    min-height: 600px;
+  }
+
+  .editor-content:focus-within,
+  [data-tiptap-editor]:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #9ca3af;
+    pointer-events: none;
+    height: 0;
+  }
+
+  .ProseMirror h1 {
+    @apply text-3xl font-bold text-gray-900 mt-6 mb-4;
+  }
+
+  .ProseMirror h2 {
+    @apply text-2xl font-bold text-gray-900 mt-5 mb-3;
+  }
+
+  .ProseMirror h3 {
+    @apply text-xl font-bold text-gray-900 mt-4 mb-2;
+  }
+
+  .ProseMirror p {
+    @apply mb-3;
+    white-space: pre-wrap;
+    word-spacing: normal;
+    letter-spacing: normal;
+  }
+
+  .ProseMirror strong {
+    @apply font-bold;
+  }
+
+  .ProseMirror em {
+    @apply italic;
+  }
+
+  /* Ensure proper text spacing */
+  .ProseMirror * {
+    white-space: pre-wrap;
+    word-spacing: normal;
+    letter-spacing: normal;
+  }
+
+  .ProseMirror ul, .ProseMirror ol {
+    @apply ml-6 mb-3;
+  }
+
+  .ProseMirror li {
+    @apply mb-1;
+  }
+
+  .ProseMirror blockquote {
+    @apply border-l-4 border-gray-300 pl-4 ml-4 italic text-gray-700;
+  }
+
+  .ProseMirror code {
+    @apply bg-gray-100 px-1 py-0.5 rounded text-sm font-mono;
+  }
+
+  .ProseMirror pre {
+    @apply bg-gray-100 p-4 rounded font-mono text-sm overflow-x-auto;
+  }
 } 

@@ -38,15 +38,39 @@ export function EditorPage() {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Ensure all basic functionality is enabled
+        paragraph: {
+          HTMLAttributes: {
+            class: 'prose-paragraph',
+          },
+        },
+        heading: {
+          HTMLAttributes: {
+            class: 'prose-heading',
+          },
+        },
+      }),
       CharacterCount.configure({
         limit: 100000,
       }),
       Placeholder.configure({
         placeholder: 'Start writing your thoughts here...',
+        showOnlyWhenEditable: true,
+        showOnlyCurrent: false,
       }),
     ],
-    content: '',
+    content: '<p></p>',
+    editorProps: {
+      attributes: {
+        class: 'editor-content',
+        spellcheck: 'true',
+        style: 'white-space: pre-wrap;',
+      },
+    },
+    parseOptions: {
+      preserveWhitespace: 'full',
+    },
     onUpdate: ({ editor }) => {
       const content = editor.getHTML()
       updateCurrentDocumentContent(content)
@@ -78,7 +102,8 @@ export function EditorPage() {
       editor.commands.setContent(currentDocument.content || '')
       setHasUnsavedChanges(false)
     }
-  }, [currentDocument, editor])
+    // Only run when the document ID changes to avoid resetting content on each keystroke
+  }, [currentDocument?.id, editor])
 
   // Auto-save functionality
   const autoSave = useCallback(async () => {
@@ -244,7 +269,7 @@ export function EditorPage() {
 
       {/* Editor */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="prose prose-lg max-w-none">
+        <div className="w-full">
           <EditorContent editor={editor} />
         </div>
       </div>
