@@ -114,9 +114,9 @@ export function EditorPage() {
     }
   }, [currentDocument, hasUnsavedChanges, saving, editor, title, saveDocument])
 
-  // Auto-save every 5 seconds
+  // Auto-save every 1 second
   useEffect(() => {
-    const interval = setInterval(autoSave, 5000)
+    const interval = setInterval(autoSave, 1000)
     return () => clearInterval(interval)
   }, [autoSave])
 
