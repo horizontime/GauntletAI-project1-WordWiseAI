@@ -113,6 +113,11 @@
     @apply mb-1;
   }
 
+  .prose ul > li::marker,
+  .prose ol > li::marker {
+    color: #000;
+  }
+
   .ProseMirror blockquote {
     @apply border-l-4 border-gray-300 pl-4 ml-4 italic text-gray-700;
   }
