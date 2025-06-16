@@ -118,7 +118,7 @@ export function DashboardPage() {
             {documents.map((doc) => (
               <div
                 key={doc.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full"
                 onClick={() => navigate(`/editor/${doc.id}`)}
               >
                 <div className="flex justify-between items-start mb-4">
@@ -155,7 +155,7 @@ export function DashboardPage() {
                   </p>
                 )}
 
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className="text-sm text-gray-600 space-y-1 mt-auto">
                   <p>Words: {getWordCount(doc.content)}</p>
                   <p>Created: {formatDate(doc.created_at)}</p>
                   <p>Updated: {formatDate(doc.updated_at)}</p>
