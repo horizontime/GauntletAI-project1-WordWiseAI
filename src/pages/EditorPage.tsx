@@ -41,17 +41,7 @@ export function EditorPage() {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Ensure all basic functionality is enabled
-        paragraph: {
-          HTMLAttributes: {
-            class: 'prose-paragraph',
-          },
-        },
-        heading: {
-          HTMLAttributes: {
-            class: 'prose-heading',
-          },
-        },
+        // The typography plugin will handle styling
       }),
       CharacterCount.configure({
         limit: 100000,
@@ -297,7 +287,7 @@ export function EditorPage() {
 
       {/* Editor */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="w-full">
+        <div className="prose w-full max-w-none">
           <EditorContent editor={editor} />
         </div>
       </div>
