@@ -5,6 +5,9 @@ import { AuthPage } from './pages/AuthPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { EditorPage } from './pages/EditorPage'
 import { LoadingSpinner } from './components/LoadingSpinner'
+import { VersionHistoryPage } from './pages/VersionHistoryPage'
+import { TrashPage } from './pages/TrashPage'
+import { AccountPage } from './pages/AccountPage'
 
 function App() {
   const { user, loading, initialize } = useAuthStore()
@@ -31,6 +34,18 @@ function App() {
         <Route 
           path="/dashboard" 
           element={user ? <DashboardPage /> : <Navigate to="/auth" replace />} 
+        />
+        <Route 
+          path="/version-history" 
+          element={user ? <VersionHistoryPage /> : <Navigate to="/auth" replace />} 
+        />
+        <Route 
+          path="/trash" 
+          element={user ? <TrashPage /> : <Navigate to="/auth" replace />} 
+        />
+        <Route 
+          path="/account" 
+          element={user ? <AccountPage /> : <Navigate to="/auth" replace />} 
         />
         <Route 
           path="/editor/:documentId?" 
