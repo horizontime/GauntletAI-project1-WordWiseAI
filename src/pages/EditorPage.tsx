@@ -457,6 +457,7 @@ export function EditorPage() {
               <ItalicIcon className="w-4 h-4" />
             </button>
 
+            {/* 
             <button
               onMouseDown={(e) => {
                 e.preventDefault()
@@ -470,6 +471,7 @@ export function EditorPage() {
             >
               <LinkIcon className="w-4 h-4" />
             </button>
+            */}
 
             <div className="w-px h-6 bg-gray-300 mx-3"></div>
 
