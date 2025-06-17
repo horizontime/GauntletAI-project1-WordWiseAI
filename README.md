@@ -13,7 +13,7 @@ WordWise AI is a modern writing assistance application designed for college stud
   - Bold, Italic formatting
   - Heading levels (H1, H2, H3)
   - Undo/Redo functionality
-- ✅ Auto-save every 5 seconds
+- ✅ Auto-save every 1 second
 - ✅ Real-time word and character count
 - ✅ Responsive design for all devices
 - ✅ Clean, distraction-free interface
@@ -89,26 +89,36 @@ npm run build
 
 ```
 WordWise/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   └── LoadingSpinner.tsx
-│   ├── lib/                 # Utility libraries and configurations
-│   │   └── supabase.ts      # Supabase client configuration
-│   ├── pages/               # Main application pages
-│   │   ├── AuthPage.tsx     # Authentication (Sign in/Sign up)
-│   │   ├── DashboardPage.tsx # Document management dashboard
-│   │   └── EditorPage.tsx   # Rich text editor
-│   ├── stores/              # Zustand state management
-│   │   ├── authStore.ts     # User authentication state
-│   │   └── documentStore.ts # Document management state
-│   ├── App.tsx              # Main application component
-│   ├── main.tsx             # Application entry point
-│   └── index.css            # Global styles and Tailwind imports
-├── public/                  # Static assets
-├── package.json             # Dependencies and scripts
-├── vite.config.ts           # Vite configuration
-├── tailwind.config.js       # Tailwind CSS configuration
-└── tsconfig.json            # TypeScript configuration
+├── index.html                          # HTML entry for Vite
+├── package.json                        # Dependencies and scripts
+├── package-lock.json
+├── postcss.config.js                   # PostCSS plugins (Tailwind)
+├── tailwind.config.js                  # Tailwind CSS configuration
+├── tsconfig.json                       # TypeScript base config
+├── tsconfig.node.json                  # Node-specific TS config
+├── vite.config.ts                      # Vite build configuration
+├── src/                                # Application source
+│   ├── App.tsx                         # Main application component
+│   ├── main.tsx                        # Application entry point
+│   ├── index.css                       # Global styles & Tailwind imports
+│   ├── components/                     # Reusable UI components
+│   │   ├── LoadingSpinner.tsx
+│   │   ├── Modal.tsx
+│   │   └── Sidebar.tsx
+│   ├── lib/                            # Utility libraries & configurations
+│   │   └── supabase.ts                 # Supabase client configuration
+│   ├── pages/                          # Main application pages
+│   │   ├── AccountPage.tsx
+│   │   ├── AuthPage.tsx
+│   │   ├── DashboardPage.tsx
+│   │   ├── EditorPage.tsx
+│   │   ├── TrashPage.tsx
+│   │   └── VersionHistoryPage.tsx
+│   └── stores/                         # Zustand state management
+│       ├── authStore.ts
+│       ├── documentStore.ts
+│       └── versionStore.ts
+└── README.md                           # Documentation
 ```
 
 ## User Stories (MVP)
