@@ -52,8 +52,8 @@ export function VersionHistoryPage() {
     })
   }
 
-  // Returns a plain-text preview (first ~100 chars) from the document HTML content
-  const getPreview = (content: string, maxLength: number = 100) => {
+  // Returns a plain-text preview (first ~80 chars by default) from the document HTML content
+  const getPreview = (content: string, maxLength: number = 80) => {
     if (!content) return ''
     // Strip HTML tags to get plain text
     const plainText = content.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
@@ -61,8 +61,22 @@ export function VersionHistoryPage() {
   }
 
   // Helper to download a specific version as a plain-text file
-  const downloadVersion = (version: { title: string; content: string }) => {
-    const filename = `${version.title || 'document'}.txt`
+  const downloadVersion = (
+    version: { title: string; content: string; created_at?: string }
+  ) => {
+    const timestampSource = version.created_at || new Date().toISOString()
+    const dateObj = new Date(timestampSource)
+    // Format as YYYY-MM-DD_Time_H_MMPM (e.g., 2025-06-17_Time_7_53PM)
+    const year = dateObj.getFullYear()
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+    const day = String(dateObj.getDate()).padStart(2, '0')
+    let hours = dateObj.getHours()
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+    hours = hours % 12
+    if (hours === 0) hours = 12 // convert 0 to 12 for 12AM/12PM
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0')
+    const safeTimestamp = `${year}-${month}-${day}_Time_${hours}_${minutes}${ampm}`
+    const filename = `${version.title || 'document'}_${safeTimestamp}.txt`
     const blob = new Blob([version.content], {
       type: 'text/plain;charset=utf-8',
     })
