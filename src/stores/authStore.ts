@@ -54,9 +54,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signUp: async (email: string, password: string) => {
     try {
+      // Dynamically set the confirmation-link redirect to the page the user is on
+      // so that the email works in both development (localhost) and production
+      // (e.g. Netlify) without having to flip a switch in Supabase each time.
+      // After the user clicks the link, they'll be taken to /dashboard where
+      // the app will finish processing the auth hash and store the session.
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
       })
       
       if (error) {
