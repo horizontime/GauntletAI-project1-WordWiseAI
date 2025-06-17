@@ -5,6 +5,7 @@ import { useDocumentStore } from '../stores/documentStore'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { PlusIcon, FileTextIcon, TrashIcon, EditIcon } from 'lucide-react'
 import { Sidebar } from '../components/Sidebar'
+import toast from 'react-hot-toast'
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -14,7 +15,8 @@ export function DashboardPage() {
     loading, 
     fetchDocuments, 
     createDocument, 
-    deleteDocument 
+    deleteDocument,
+    restoreDocument
   } = useDocumentStore()
   
   const [editingTitle, setEditingTitle] = useState<string | null>(null)
@@ -36,9 +38,28 @@ export function DashboardPage() {
   }
 
   const handleDeleteDocument = async (docId: string, title: string) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
-      await deleteDocument(docId)
-    }
+    await deleteDocument(docId)
+    toast(
+      (t: any) => (
+        <span className="flex items-center space-x-2">
+          <span>Deleted "{title}"</span>
+          <button
+            onClick={() => {
+              restoreDocument(docId)
+              toast.dismiss(t.id)
+            }}
+            className="text-primary-600 underline hover:no-underline"
+          >
+            Undo
+          </button>
+        </span>
+      ),
+      {
+        id: `delete-${docId}`,
+        duration: 5000,
+        position: 'bottom-right',
+      }
+    )
   }
 
   const formatDate = (dateString: string) => {

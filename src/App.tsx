@@ -8,6 +8,7 @@ import { LoadingSpinner } from './components/LoadingSpinner'
 import { VersionHistoryPage } from './pages/VersionHistoryPage'
 import { TrashPage } from './pages/TrashPage'
 import { AccountPage } from './pages/AccountPage'
+import { Toaster } from 'react-hot-toast'
 
 function App() {
   const { user, loading, initialize } = useAuthStore()
@@ -56,6 +57,21 @@ function App() {
           element={<Navigate to={user ? "/dashboard" : "/auth"} replace />} 
         />
       </Routes>
+      {/* Customized global toaster styles */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          duration: 5000,
+          // Dark gray (almost black) background with white text
+          style: {
+            background: "#111111", // near-black
+            color: "#ffffff",
+            // Increase toast size by roughly 25%
+            minWidth: "330px", // reduced width (~25% narrower than previous setting)
+            minHeight: "60px", // default is ~48px
+          },
+        }}
+      />
     </div>
   )
 }
