@@ -7,6 +7,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import { useAuthStore } from '../stores/authStore'
 import { useDocumentStore } from '../stores/documentStore'
+import { useVersionStore } from '../stores/versionStore'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { 
   BoldIcon, 
@@ -36,6 +37,8 @@ export function EditorPage() {
     createDocument,
     updateCurrentDocumentContent 
   } = useDocumentStore()
+
+  const { createVersion } = useVersionStore()
 
   const [title, setTitle] = useState('')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -157,6 +160,21 @@ export function EditorPage() {
     setHasUnsavedChanges(true)
   }
 
+  // Handle back navigation and version creation
+  const handleBackClick = async () => {
+    if (currentDocument && user) {
+      const content = editor?.getHTML() || currentDocument.content
+
+      // Ensure latest changes are persisted
+      await saveDocument(currentDocument.id, content, title)
+
+      // Record a new version entry
+      await createVersion(currentDocument.id, user.id, title || currentDocument.title, content)
+    }
+
+    navigate('/dashboard')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -194,7 +212,7 @@ export function EditorPage() {
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={handleBackClick}
                 className="text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeftIcon className="w-5 h-5" />

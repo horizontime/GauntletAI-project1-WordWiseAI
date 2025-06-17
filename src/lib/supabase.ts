@@ -29,4 +29,13 @@ export interface Document {
   is_deleted: boolean
   /** Timestamp (ISO string) when the document was moved to Trash. Null when not deleted. */
   deleted_at: string | null
+}
+
+export interface DocumentVersion {
+  id: string
+  document_id: string
+  user_id: string
+  title: string
+  content: string
+  created_at: string
 } 
