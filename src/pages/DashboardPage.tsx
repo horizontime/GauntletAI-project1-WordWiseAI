@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useDocumentStore } from '../stores/documentStore'
@@ -19,9 +19,6 @@ export function DashboardPage() {
     restoreDocument
   } = useDocumentStore()
   
-  const [editingTitle, setEditingTitle] = useState<string | null>(null)
-  const [newTitle, setNewTitle] = useState('')
-
   useEffect(() => {
     if (user) {
       fetchDocuments(user.id)
@@ -155,8 +152,7 @@ export function DashboardPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          setEditingTitle(doc.id)
-                          setNewTitle(doc.title)
+                          navigate(`/editor/${doc.id}`)
                         }}
                         className="text-gray-400 hover:text-gray-600"
                       >
