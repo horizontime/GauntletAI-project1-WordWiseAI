@@ -131,49 +131,50 @@ export function VersionHistoryPage() {
                     </tr>
 
                     {expanded.has(doc.id) && (
-                      <tr key={`${doc.id}-versions`}>
-                        <td colSpan={5} className="bg-gray-50">
-                          {versionsLoading && !versionsByDocument[doc.id] ? (
-                            <div className="flex justify-center py-4">
+                      <>
+                        {versionsLoading && !versionsByDocument[doc.id] ? (
+                          <tr key={`${doc.id}-loading`} className="bg-gray-50">
+                            <td colSpan={5} className="px-4 py-3 text-center">
                               <LoadingSpinner />
-                            </div>
-                          ) : (
-                            <table className="min-w-full divide-y divide-gray-200 ml-6 my-2">
-                              <tbody className="divide-y divide-gray-200">
-                                {(versionsByDocument[doc.id] || []).map((v) => (
-                                  <tr key={v.id} className="hover:bg-gray-100">
-                                    <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
-                                      {formatDate(v.created_at)}
-                                    </td>
-                                    <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                                      {v.title}
-                                    </td>
-                                    <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
-                                      {getPreview(v.content)}
-                                    </td>
-                                    <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
-                                      <button
-                                        onClick={() => downloadVersion(v)}
-                                        className="flex items-center text-blue-600 hover:text-blue-800"
-                                      >
-                                        <Download className="w-4 h-4 mr-1" />
-                                        Download
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                                {versionsByDocument[doc.id] && versionsByDocument[doc.id].length === 0 && (
-                                  <tr>
-                                    <td colSpan={4} className="px-4 py-3 text-sm text-gray-500 text-center">
-                                      No versions yet
-                                    </td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
-                          )}
-                        </td>
-                      </tr>
+                            </td>
+                          </tr>
+                        ) : (
+                          <>
+                            {(versionsByDocument[doc.id] || []).map((v) => (
+                              <tr key={v.id} className="hover:bg-gray-100">
+                                {/* Empty cell to align with the expand/collapse column */}
+                                <td className="px-2 py-2" />
+                                <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
+                                  {formatDate(v.created_at)}
+                                </td>
+                                <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
+                                  {v.title}
+                                </td>
+                                <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
+                                  {getPreview(v.content)}
+                                </td>
+                                <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
+                                  <button
+                                    onClick={() => downloadVersion(v)}
+                                    className="flex items-center text-blue-600 hover:text-blue-800"
+                                  >
+                                    <Download className="w-4 h-4 mr-1" />
+                                    Download
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+
+                            {versionsByDocument[doc.id] && versionsByDocument[doc.id].length === 0 && (
+                              <tr key={`${doc.id}-no-versions`} className="bg-gray-50">
+                                <td colSpan={5} className="px-4 py-3 text-sm text-gray-500 text-center">
+                                  No versions yet
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        )}
+                      </>
                     )}
                   </React.Fragment>
                 ))}
