@@ -77,7 +77,13 @@ export function VersionHistoryPage() {
     const minutes = String(dateObj.getMinutes()).padStart(2, '0')
     const safeTimestamp = `${year}-${month}-${day}_Time_${hours}_${minutes}${ampm}`
     const filename = `${version.title || 'document'}_${safeTimestamp}.txt`
-    const blob = new Blob([version.content], {
+
+    // Convert HTML content to plain text before downloading
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = version.content || ''
+    const plainTextContent = tempDiv.innerText || tempDiv.textContent || ''
+
+    const blob = new Blob([plainTextContent], {
       type: 'text/plain;charset=utf-8',
     })
     const link = document.createElement('a')
