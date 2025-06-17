@@ -4,7 +4,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useDocumentStore } from '../stores/documentStore'
 import { useVersionStore } from '../stores/versionStore'
 import { LoadingSpinner } from '../components/LoadingSpinner'
-import { ChevronRightIcon, ChevronDownIcon } from 'lucide-react'
+import { ChevronRightIcon, ChevronDownIcon, Download } from 'lucide-react'
 
 export function VersionHistoryPage() {
   const { user } = useAuthStore()
@@ -57,6 +57,19 @@ export function VersionHistoryPage() {
     return content.trim().split(/\s+/).filter((w) => w.length > 0).length
   }
 
+  // Helper to download a specific version as a plain-text file
+  const downloadVersion = (version: { title: string; content: string }) => {
+    const filename = `${version.title || 'document'}.txt`
+    const blob = new Blob([version.content], {
+      type: 'text/plain;charset=utf-8',
+    })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = filename
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
@@ -81,10 +94,10 @@ export function VersionHistoryPage() {
                     Title
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Words
+                    Updated
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Updated
+                    Download
                   </th>
                 </tr>
               </thead>
@@ -109,11 +122,9 @@ export function VersionHistoryPage() {
                         {doc.title}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
-                        {getWordCount(doc.content)}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
                         {formatDate(doc.updated_at)}
                       </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700" />
                     </tr>
 
                     {expanded.has(doc.id) && (
@@ -125,19 +136,6 @@ export function VersionHistoryPage() {
                             </div>
                           ) : (
                             <table className="min-w-full divide-y divide-gray-200 ml-6 my-2">
-                              <thead>
-                                <tr>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Saved At
-                                  </th>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Title
-                                  </th>
-                                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Words
-                                  </th>
-                                </tr>
-                              </thead>
                               <tbody className="divide-y divide-gray-200">
                                 {(versionsByDocument[doc.id] || []).map((v) => (
                                   <tr key={v.id} className="hover:bg-gray-100">
@@ -150,11 +148,20 @@ export function VersionHistoryPage() {
                                     <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
                                       {getWordCount(v.content)}
                                     </td>
+                                    <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
+                                      <button
+                                        onClick={() => downloadVersion(v)}
+                                        className="flex items-center text-blue-600 hover:text-blue-800"
+                                      >
+                                        <Download className="w-4 h-4 mr-1" />
+                                        Download
+                                      </button>
+                                    </td>
                                   </tr>
                                 ))}
                                 {versionsByDocument[doc.id] && versionsByDocument[doc.id].length === 0 && (
                                   <tr>
-                                    <td colSpan={3} className="px-4 py-3 text-sm text-gray-500 text-center">
+                                    <td colSpan={4} className="px-4 py-3 text-sm text-gray-500 text-center">
                                       No versions yet
                                     </td>
                                   </tr>
