@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 
 export function DashboardPage() {
   const navigate = useNavigate()
-  const { user, signOut } = useAuthStore()
+  const { user } = useAuthStore()
   const { 
     documents, 
     loading, 
@@ -96,12 +96,6 @@ export function DashboardPage() {
                 <h1 className="text-2xl font-bold text-gray-900">WordWise AI</h1>
                 <p className="text-sm text-gray-600">Welcome back, {user?.email}</p>
               </div>
-              <button
-                onClick={signOut}
-                className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-              >
-                Sign out
-              </button>
             </div>
           </div>
         </header>
