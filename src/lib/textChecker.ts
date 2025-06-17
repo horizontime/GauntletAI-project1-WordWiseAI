@@ -130,10 +130,26 @@ export function checkText(text: string): Suggestion[] {
     ...capitalisationCheck(text),
   ]
 
-  return issues.map((iss) => ({
-    id: `${iss.type}-${iss.index}`,
-    category: "Correctness", // map all basic errors to Correctness
-    title: iss.type,
-    excerpt: iss.message,
-  }))
+  return issues.map((iss) => {
+    let excerpt = iss.message
+
+    // Provide replacement preview for sentence capitalisation so the editor can auto-fix it
+    if (iss.type === "Sentence start") {
+      // Extract the word starting at the issue index
+      const tail = text.slice(iss.index)
+      const match = tail.match(RE_WORD)
+      if (match) {
+        const original = match[0]
+        const replacement = original.charAt(0).toUpperCase() + original.slice(1)
+        excerpt = `<del>${original}</del> → <strong>${replacement}</strong>`
+      }
+    }
+
+    return {
+      id: `${iss.type}-${iss.index}`,
+      category: "Correctness", // map all basic errors to Correctness
+      title: iss.type,
+      excerpt,
+    }
+  })
 } 
