@@ -25,6 +25,7 @@ import {
   LinkIcon,
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
+import { checkText } from "../lib/textChecker"
 // @ts-ignore – the package ships without TypeScript types but works in runtime
 import WProofreader from "@webspellchecker/wproofreader-sdk-js"
 
@@ -43,33 +44,7 @@ export function EditorPage() {
   const [linkUrl, setLinkUrl] = useState("")
 
   // Mock suggestions to demonstrate the sidebar UI
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([
-    {
-      id: "1",
-      category: "Correctness",
-      title: "Correct your spelling",
-      excerpt: "The dog <del>runned</del> <strong>ran</strong> across the...",
-    },
-    {
-      id: "2",
-      category: "Clarity",
-      title: "Simplify sentence",
-      excerpt:
-        "It was a <del>sunny day, and children was playing</del> <strong>sunny day and children were playing</strong>...",
-    },
-    {
-      id: "3",
-      category: "Engagement",
-      title: "Add descriptive word",
-      excerpt: "The special effects was <del>amazing</del> <strong>truly amazing</strong>...",
-    },
-    {
-      id: "4",
-      category: "Delivery",
-      title: "Adjust tone",
-      excerpt: "Coach said that they <del>needs</del> <strong>need</strong> to work...",
-    },
-  ])
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
   const editor = useEditor({
     extensions: [
@@ -106,6 +81,10 @@ export function EditorPage() {
       const content = editor.getHTML()
       updateCurrentDocumentContent(content)
       setHasUnsavedChanges(true)
+
+      const plainText = editor.getText()
+      const detected = checkText(plainText)
+      setSuggestions(detected)
     },
   })
 
