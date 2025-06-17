@@ -104,6 +104,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await supabase.auth.signOut()
     } catch (error) {
       console.error('Error signing out:', error)
+    } finally {
+      // Immediately clear the local user so the UI (and routing guards)
+      // react instantly, even if the network request fails or is delayed.
+      set({ user: null })
     }
   },
 
