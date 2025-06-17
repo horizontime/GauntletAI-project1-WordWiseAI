@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
@@ -46,6 +46,18 @@ export function EditorPage() {
   // Mock suggestions to demonstrate the sidebar UI
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
+  /**
+   * Keep track of suggestions that the user explicitly dismissed so they
+   * won't show up again for the current document editing session.
+   * We store a stable "key" derived from the suggestion's semantic content
+   * (title + excerpt) instead of the built-in id because the id contains the
+   * character index which may shift as the user continues typing.
+   */
+  const [dismissedSuggestionKeys, setDismissedSuggestionKeys] = useState<Set<string>>(new Set())
+  const dismissedSuggestionKeysRef = useRef<Set<string>>(new Set())
+
+  const getSuggestionKey = (s: Suggestion) => `${s.title}-${s.excerpt}`
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -84,7 +96,9 @@ export function EditorPage() {
 
       const plainText = editor.getText()
       const detected = checkText(plainText)
-      setSuggestions(detected)
+      // Filter out any suggestions that the user has previously dismissed.
+      const filtered = detected.filter((sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)))
+      setSuggestions(filtered)
     },
   })
 
@@ -259,9 +273,27 @@ export function EditorPage() {
     [editor],
   )
 
-  const handleDismissSuggestion = useCallback((s: Suggestion) => {
-    removeSuggestionById(s.id)
-  }, [])
+  const handleDismissSuggestion = useCallback(
+    (s: Suggestion) => {
+      // Remember that the user dismissed this suggestion so we don't show it again.
+      const key = getSuggestionKey(s)
+      setDismissedSuggestionKeys((prev) => {
+        const next = new Set(prev)
+        next.add(key)
+        dismissedSuggestionKeysRef.current = next
+        return next
+      })
+
+      removeSuggestionById(s.id)
+    },
+    [],
+  )
+
+  // Reset dismissed suggestions when a different document is loaded.
+  useEffect(() => {
+    setDismissedSuggestionKeys(new Set())
+    dismissedSuggestionKeysRef.current = new Set()
+  }, [currentDocument?.id])
 
   if (loading) {
     return (
