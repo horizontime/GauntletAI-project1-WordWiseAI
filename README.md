@@ -56,8 +56,8 @@ Create a `.env.local` file in the root directory with the following content:
 
 ```env
 # Supabase Configuration
-VITE_SUPABASE_URL=https://bsndczzjbqabitoxcgzh.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzbmRjenpqYnFhYml0b3hjZ3poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTkyNzQsImV4cCI6MjA2NTY3NTI3NH0.edJ6NrmVvO_ETuI1Hqm_MbmlrgnuHKJqMt9k2r0oubk
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
 
 # Optional: For development
 VITE_APP_ENV=development
