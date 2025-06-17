@@ -208,6 +208,8 @@ export function checkText(text: string): Suggestion[] {
         const misspelled = match[1]
         candidates = getClosestWords(misspelled, 3)
       }
+    } else if (iss.type === "Punctuation") {
+      candidates = [".", "?", "!"]
     }
 
     return {

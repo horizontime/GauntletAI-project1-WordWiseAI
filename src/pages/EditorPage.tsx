@@ -278,6 +278,16 @@ export function EditorPage() {
         if (!match) return
         original = match[1]
         newReplacement = replacement
+      } else if (s.title === "Punctuation") {
+        // Append the chosen punctuation at the end of the document.
+        if (!replacement) {
+          replacement = s.candidates && s.candidates.length > 0 ? s.candidates[0] : "."
+        }
+
+        // Insert punctuation at end using editor chain.
+        editor.chain().focus("end").insertContent(replacement).run()
+        removeSuggestionById(s.id)
+        return
       } else {
         // Unsupported suggestion type for auto accept
         return
