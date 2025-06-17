@@ -250,15 +250,40 @@ export function EditorPage() {
 
   /** Accept a suggestion – replace the offending text with the proposed fix */
   const handleAcceptSuggestion = useCallback(
-    (s: Suggestion) => {
+    (s: Suggestion, replacement?: string) => {
       if (!editor) return
 
-      const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
-      const strongMatch = s.excerpt.match(/<strong>(.*?)<\/strong>/i)
-      if (!delMatch || !strongMatch) return
+      let original: string | null = null
+      let newReplacement: string | null = null
 
-      const original = delMatch[1]
-      const replacement = strongMatch[1]
+      if (s.title === "Sentence start") {
+        const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
+        const strongMatch = s.excerpt.match(/<strong>(.*?)<\/strong>/i)
+        if (!delMatch || !strongMatch) return
+        original = delMatch[1]
+        newReplacement = strongMatch[1]
+      } else if (s.title === "Spelling") {
+        // For spelling suggestions, we received replacement candidate.
+        if (!replacement) {
+          // No replacement selected; default to first candidate if present
+          if (s.candidates && s.candidates.length > 0) {
+            replacement = s.candidates[0]
+          } else {
+            return
+          }
+        }
+
+        // Extract the misspelled word from the excerpt (quoted word)
+        const match = s.excerpt.match(/"\s*(.+?)\s*"/)
+        if (!match) return
+        original = match[1]
+        newReplacement = replacement
+      } else {
+        // Unsupported suggestion type for auto accept
+        return
+      }
+
+      if (!original || !newReplacement) return
 
       const html = editor.getHTML()
       if (!html.includes(original)) {
@@ -266,11 +291,11 @@ export function EditorPage() {
         return
       }
 
-      const newHtml = html.replace(original, replacement)
+      const newHtml = html.replace(original, newReplacement)
       editor.commands.setContent(newHtml)
       removeSuggestionById(s.id)
     },
-    [editor],
+    [editor, removeSuggestionById],
   )
 
   const handleDismissSuggestion = useCallback(
@@ -286,7 +311,7 @@ export function EditorPage() {
 
       removeSuggestionById(s.id)
     },
-    [],
+    [removeSuggestionById],
   )
 
   // Reset dismissed suggestions when a different document is loaded.

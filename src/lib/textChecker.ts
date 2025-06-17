@@ -3,7 +3,8 @@ import wordList from "an-array-of-english-words"
 /** --------------------------------------------------------------
  *  Dictionary – loaded once and reused
  * --------------------------------------------------------------*/
-const DICT_LOWER = new Set<string>(wordList.map((w) => w.toLowerCase()))
+const WORD_ARRAY = wordList.map((w) => w.toLowerCase())
+const DICT_LOWER = new Set<string>(WORD_ARRAY)
 
 /** --------------------------------------------------------------
  *  Regex helpers
@@ -60,6 +61,56 @@ function grammarCheck(text: string): Issue[] {
   return issues
 }
 
+/** --------------------------------------------------------------
+ *  Levenshtein distance helper (small implementation)
+ * --------------------------------------------------------------*/
+function levenshtein(a: string, b: string): number {
+  const m = a.length
+  const n = b.length
+  const dp: number[] = Array(n + 1)
+  for (let j = 0; j <= n; j++) dp[j] = j
+
+  for (let i = 1; i <= m; i++) {
+    let prev = i - 1
+    dp[0] = i
+    for (let j = 1; j <= n; j++) {
+      const tmp = dp[j]
+      if (a[i - 1] === b[j - 1]) {
+        dp[j] = prev
+      } else {
+        dp[j] = Math.min(prev + 1, dp[j] + 1, dp[j - 1] + 1)
+      }
+      prev = tmp
+    }
+  }
+  return dp[n]
+}
+
+function getClosestWords(word: string, limit = 3): string[] {
+  const lower = word.toLowerCase()
+
+  // Fast path: if dictionary contains word, return empty array.
+  if (DICT_LOWER.has(lower)) return []
+
+  // Only consider words with the same first letter and length within ±2 to speed up.
+  const first = lower[0]
+  const len = lower.length
+
+  const candidates: { w: string; d: number }[] = []
+
+  for (const w of WORD_ARRAY) {
+    if (w[0] !== first) continue
+    if (Math.abs(w.length - len) > 2) continue
+    const dist = levenshtein(lower, w)
+    if (dist <= 3) {
+      candidates.push({ w, d: dist })
+    }
+  }
+
+  candidates.sort((a, b) => a.d - b.d)
+  return candidates.slice(0, limit).map((c) => c.w)
+}
+
 function spellingCheck(text: string): Issue[] {
   const issues: Issue[] = []
   let m: RegExpExecArray | null
@@ -68,10 +119,13 @@ function spellingCheck(text: string): Issue[] {
     const lower = word.toLowerCase()
 
     if (!DICT_LOWER.has(lower)) {
+      const suggestions = getClosestWords(word, 3)
       issues.push({
         type: "Spelling",
         index: m.index,
-        message: `" ${word} " is not in the dictionary.`,
+        message: `" ${word} " is not in the dictionary.${
+          suggestions.length ? ` Did you mean: ${suggestions.join(", ")}?` : ""
+        }`,
       })
     }
   }
@@ -121,6 +175,7 @@ export interface Suggestion {
   category: "Correctness" | "Clarity" | "Engagement" | "Delivery"
   title: string
   excerpt: string // simple HTML snippet
+  candidates?: string[] // optional replacement list for spelling
 }
 
 export function checkText(text: string): Suggestion[] {
@@ -132,6 +187,7 @@ export function checkText(text: string): Suggestion[] {
 
   return issues.map((iss) => {
     let excerpt = iss.message
+    let candidates: string[] | undefined
 
     // Provide replacement preview for sentence capitalisation so the editor can auto-fix it
     if (iss.type === "Sentence start") {
@@ -145,11 +201,21 @@ export function checkText(text: string): Suggestion[] {
       }
     }
 
+    if (iss.type === "Spelling") {
+      // Extract the word inside the quotes for candidates
+      const match = iss.message.match(/"\s*(.+?)\s*"/)
+      if (match) {
+        const misspelled = match[1]
+        candidates = getClosestWords(misspelled, 3)
+      }
+    }
+
     return {
       id: `${iss.type}-${iss.index}`,
       category: "Correctness", // map all basic errors to Correctness
       title: iss.type,
       excerpt,
+      candidates,
     }
   })
 } 

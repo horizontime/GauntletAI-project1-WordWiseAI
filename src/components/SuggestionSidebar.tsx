@@ -19,6 +19,7 @@ export interface Suggestion {
   category: Category
   title: string // short action phrase
   excerpt: string // HTML string with <del> and <strong> etc.
+  candidates?: string[]
 }
 
 interface Props {
@@ -26,8 +27,8 @@ interface Props {
   suggestions: Suggestion[]
   /** Triggered when the user simply clicks on a card (outside action buttons). */
   onSelect?: (suggestion: Suggestion) => void
-  /** Triggered when the user accepts a suggestion. */
-  onAccept?: (suggestion: Suggestion) => void
+  /** Triggered when the user accepts a suggestion. Optionally with chosen replacement word. */
+  onAccept?: (suggestion: Suggestion, replacement?: string) => void
   /** Triggered when the user dismisses a suggestion. */
   onDismiss?: (suggestion: Suggestion) => void
 }
@@ -39,8 +40,8 @@ export function SuggestionSidebar({ editor: _editor, suggestions, onSelect, onAc
   const counter = suggestions.length
 
   // Delegate operations to parent callbacks.
-  const handleAccept = (s: Suggestion) => {
-    onAccept?.(s)
+  const handleAccept = (s: Suggestion, replacement?: string) => {
+    onAccept?.(s, replacement)
   }
 
   const handleDismiss = (s: Suggestion) => {
@@ -104,11 +105,31 @@ export function SuggestionSidebar({ editor: _editor, suggestions, onSelect, onAc
                       className="text-sm text-gray-700 mb-3 leading-relaxed font-mono bg-gray-50 p-3 rounded border"
                       dangerouslySetInnerHTML={{ __html: s.excerpt }}
                     />
+                    {/* Candidate replacements for spelling errors */}
+                    {s.candidates && s.candidates.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {s.candidates.map((cand) => (
+                          <button
+                            key={cand}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAccept(s, cand)
+                            }}
+                            className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100 text-gray-700"
+                          >
+                            {cand}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-3">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleAccept(s)
+                          // If spelling suggestion with candidates, pick first candidate by default
+                          const replacement = s.candidates && s.candidates.length > 0 ? s.candidates[0] : undefined
+                          handleAccept(s, replacement)
                         }}
                         className="px-4 py-2 rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-150"
                       >
