@@ -53,7 +53,7 @@ export function EditorPage() {
    * (title + excerpt) instead of the built-in id because the id contains the
    * character index which may shift as the user continues typing.
    */
-  const [dismissedSuggestionKeys, setDismissedSuggestionKeys] = useState<Set<string>>(new Set())
+  const [, setDismissedSuggestionKeys] = useState<Set<string>>(new Set())
   const dismissedSuggestionKeysRef = useRef<Set<string>>(new Set())
 
   const getSuggestionKey = (s: Suggestion) => `${s.title}-${s.excerpt}`
