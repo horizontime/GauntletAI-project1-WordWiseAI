@@ -112,9 +112,33 @@ export function TrashPage() {
                       {/* Permanent delete */}
                       <button
                         onClick={() => {
-                          if (window.confirm(`Permanently delete "${doc.title}"? This cannot be undone.`)) {
-                            permanentDeleteDocument(doc.id)
-                          }
+                          toast(
+                            (t: any) => (
+                              <span className="flex items-center space-x-2">
+                                <span>This document can't be restored later.</span>
+                                <button
+                                  onClick={() => toast.dismiss(t.id)}
+                                  className="text-gray-500 hover:text-gray-700 px-2 py-1 text-sm font-medium border border-gray-300 rounded-md"
+                                >
+                                  ✕
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    permanentDeleteDocument(doc.id)
+                                    toast.dismiss(t.id)
+                                  }}
+                                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm font-medium rounded-md"
+                                >
+                                  Delete
+                                </button>
+                              </span>
+                            ),
+                            {
+                              id: `permanent-delete-${doc.id}`,
+                              duration: Infinity,
+                              position: 'bottom-right',
+                            }
+                          )
                         }}
                         className="text-gray-400 hover:text-red-600"
                         title="Delete permanently"
