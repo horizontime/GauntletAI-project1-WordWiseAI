@@ -1,11 +1,14 @@
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Sidebar } from '../components/Sidebar'
 import { useDocumentStore } from '../stores/documentStore'
 import { useAuthStore } from '../stores/authStore'
 import { TrashIcon, ClockIcon, RotateCcwIcon } from 'lucide-react'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import toast from 'react-hot-toast'
 
 export function TrashPage() {
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const {
     trashedDocuments,
@@ -77,7 +80,30 @@ export function TrashPage() {
                     <div className="flex space-x-2 ml-4">
                       {/* Restore */}
                       <button
-                        onClick={() => restoreDocument(doc.id)}
+                        onClick={() => {
+                          restoreDocument(doc.id)
+                          toast(
+                            (t: any) => (
+                              <span className="flex items-center space-x-2">
+                                <span>This document has been restored.</span>
+                                <button
+                                  onClick={() => {
+                                    navigate(`/editor/${doc.id}`)
+                                    toast.dismiss(t.id)
+                                  }}
+                                  className="text-primary-600 underline hover:no-underline"
+                                >
+                                  Open
+                                </button>
+                              </span>
+                            ),
+                            {
+                              id: `restore-${doc.id}`,
+                              duration: 5000,
+                              position: 'bottom-right',
+                            }
+                          )
+                        }}
                         className="text-gray-400 hover:text-green-600"
                         title="Restore"
                       >
