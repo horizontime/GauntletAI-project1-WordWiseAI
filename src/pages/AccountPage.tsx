@@ -71,17 +71,6 @@ export function AccountPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-10 flex items-center">Profile</h1>
 
         <div className="space-y-8">
-          {/* Name row (placeholder) */}
-          <div className="flex items-center gap-4">
-            <span className="w-32 text-gray-600">Name</span>
-            <span className="flex-1 truncate text-gray-900">{user?.email?.split('@')[0] || '—'}</span>
-            <button
-              disabled
-              className="text-sm text-gray-400 cursor-not-allowed"
-            >
-              Update
-            </button>
-          </div>
 
           {/* Email row */}
           <div className="flex items-center gap-4">
@@ -135,7 +124,7 @@ export function AccountPage() {
               type="password"
               value={currentPasswordForEmail}
               onChange={(e) => setCurrentPasswordForEmail(e.target.value)}
-              className="w-full rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
           <div>
@@ -144,7 +133,7 @@ export function AccountPage() {
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              className="w-full rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
           <div className="flex justify-end gap-3">
@@ -180,7 +169,7 @@ export function AccountPage() {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
           <div>
@@ -189,7 +178,7 @@ export function AccountPage() {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
             />
           </div>
           <div className="flex justify-end gap-3">
