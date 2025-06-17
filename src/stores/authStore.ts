@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `https://endearing-custard-07a29c.netlify.app/`,
         },
       })
       
