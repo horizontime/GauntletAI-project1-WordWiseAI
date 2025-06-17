@@ -12,7 +12,6 @@ import { LoadingSpinner } from '../components/LoadingSpinner'
 import { 
   BoldIcon, 
   ItalicIcon, 
-  UnderlineIcon, 
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
@@ -23,6 +22,7 @@ import {
   FileTextIcon,
   LinkIcon
 } from 'lucide-react'
+import { SuggestionSidebar, Suggestion } from '../components/SuggestionSidebar'
 
 export function EditorPage() {
   const { documentId } = useParams()
@@ -44,6 +44,34 @@ export function EditorPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
+
+  // Mock suggestions to demonstrate the sidebar UI
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([
+    {
+      id: '1',
+      category: 'Correctness',
+      title: 'Correct your spelling',
+      excerpt: 'The dog <del>runned</del> <strong>ran</strong> across the...'
+    },
+    {
+      id: '2',
+      category: 'Clarity',
+      title: 'Simplify sentence',
+      excerpt: 'It was a <del>sunny day, and children was playing</del> <strong>sunny day and children were playing</strong>...'
+    },
+    {
+      id: '3',
+      category: 'Engagement',
+      title: 'Add descriptive word',
+      excerpt: 'The special effects was <del>amazing</del> <strong>truly amazing</strong>...'
+    },
+    {
+      id: '4',
+      category: 'Delivery',
+      title: 'Adjust tone',
+      excerpt: 'Coach said that they <del>needs</del> <strong>need</strong> to work...'
+    },
+  ])
 
   const editor = useEditor({
     extensions: [
@@ -205,7 +233,7 @@ export function EditorPage() {
   const characterCount = editor?.storage.characterCount.characters() || 0
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pr-80">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -403,6 +431,9 @@ export function EditorPage() {
           </div>
         </div>
       </div>
+
+      {/* Grammarly-like sidebar */}
+      <SuggestionSidebar editor={editor} suggestions={suggestions} onUpdateSuggestions={setSuggestions} />
     </div>
   )
 } 
