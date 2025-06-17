@@ -52,9 +52,12 @@ export function VersionHistoryPage() {
     })
   }
 
-  const getWordCount = (content: string) => {
-    if (!content) return 0
-    return content.trim().split(/\s+/).filter((w) => w.length > 0).length
+  // Returns a plain-text preview (first ~100 chars) from the document HTML content
+  const getPreview = (content: string, maxLength: number = 100) => {
+    if (!content) return ''
+    // Strip HTML tags to get plain text
+    const plainText = content.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+    return plainText.length > maxLength ? `${plainText.slice(0, maxLength)}…` : plainText
   }
 
   // Helper to download a specific version as a plain-text file
@@ -94,7 +97,7 @@ export function VersionHistoryPage() {
                     Title
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Updated
+                    Text preview
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Download
@@ -122,7 +125,7 @@ export function VersionHistoryPage() {
                         {doc.title}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
-                        {formatDate(doc.updated_at)}
+                        {getPreview(doc.content)}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700" />
                     </tr>
@@ -146,7 +149,7 @@ export function VersionHistoryPage() {
                                       {v.title}
                                     </td>
                                     <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
-                                      {getWordCount(v.content)}
+                                      {getPreview(v.content)}
                                     </td>
                                     <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
                                       <button
