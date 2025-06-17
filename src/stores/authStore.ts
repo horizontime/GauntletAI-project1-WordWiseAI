@@ -33,6 +33,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (event, session) => {
+        // Mark 'event' as intentionally unused to avoid TypeScript noUnusedParameters error
+        void event
         if (session?.user) {
           const user: User = {
             id: session.user.id,
