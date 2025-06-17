@@ -1,13 +1,15 @@
-import { useState } from 'react'
-import { Editor } from '@tiptap/react'
-import { CheckCircle2Icon, InfoIcon, SparklesIcon, SendIcon, MoreVertical } from 'lucide-react'
+"use client"
+
+import { useState } from "react"
+import type { Editor } from "@tiptap/react"
+import { CheckCircle2Icon, InfoIcon, SparklesIcon, SendIcon, MoreVertical } from "lucide-react"
 
 // Colors for each category
 const categoryConfig = {
-  Correctness: { color: 'text-red-500', bgColor: 'bg-red-500', border: 'border-red-500', icon: CheckCircle2Icon },
-  Clarity: { color: 'text-blue-500', bgColor: 'bg-blue-500', border: 'border-blue-500', icon: InfoIcon },
-  Engagement: { color: 'text-green-500', bgColor: 'bg-green-500', border: 'border-green-500', icon: SparklesIcon },
-  Delivery: { color: 'text-purple-500', bgColor: 'bg-purple-500', border: 'border-purple-500', icon: SendIcon },
+  Correctness: { color: "text-red-500", bgColor: "bg-red-500", border: "border-red-500", icon: CheckCircle2Icon },
+  Clarity: { color: "text-blue-500", bgColor: "bg-blue-500", border: "border-blue-500", icon: InfoIcon },
+  Engagement: { color: "text-green-500", bgColor: "bg-green-500", border: "border-green-500", icon: SparklesIcon },
+  Delivery: { color: "text-purple-500", bgColor: "bg-purple-500", border: "border-purple-500", icon: SendIcon },
 } as const
 
 type Category = keyof typeof categoryConfig
@@ -22,38 +24,39 @@ export interface Suggestion {
 interface Props {
   editor?: Editor | null
   suggestions: Suggestion[]
-  onUpdateSuggestions: (updated: Suggestion[]) => void
+  /** Triggered when the user simply clicks on a card (outside action buttons). */
+  onSelect?: (suggestion: Suggestion) => void
+  /** Triggered when the user accepts a suggestion. */
+  onAccept?: (suggestion: Suggestion) => void
+  /** Triggered when the user dismisses a suggestion. */
+  onDismiss?: (suggestion: Suggestion) => void
 }
 
-export function SuggestionSidebar({ editor, suggestions, onUpdateSuggestions }: Props) {
-  const [activeCategory, setActiveCategory] = useState<Category>('Correctness')
+export function SuggestionSidebar({ editor: _editor, suggestions, onSelect, onAccept, onDismiss }: Props) {
+  const [activeCategory, setActiveCategory] = useState<Category>("Correctness")
 
   const filtered = suggestions.filter((s) => s.category === activeCategory)
   const counter = suggestions.length
 
-  const handleAccept = (id: string) => {
-    // TODO: implement real replacement logic. For now just remove suggestion.
-    const remaining = suggestions.filter((s) => s.id !== id)
-    onUpdateSuggestions(remaining)
+  // Delegate operations to parent callbacks.
+  const handleAccept = (s: Suggestion) => {
+    onAccept?.(s)
   }
 
-  const handleDismiss = (id: string) => {
-    const remaining = suggestions.filter((s) => s.id !== id)
-    onUpdateSuggestions(remaining)
+  const handleDismiss = (s: Suggestion) => {
+    onDismiss?.(s)
   }
 
   return (
-    <aside className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-lg flex flex-col z-20">
+    <aside className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl flex flex-col z-20">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 border-b border-gray-300" style={{ height: '56px' }}>
-        <h2 className="text-sm font-semibold text-gray-900">Review suggestions</h2>
-        <span className="text-xs font-bold text-gray-800 bg-gray-100 rounded-full px-2 py-0.5">
-          {counter}
-        </span>
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <h2 className="text-base font-semibold text-gray-900">Review suggestions</h2>
+        <span className="text-xs font-bold text-gray-700 bg-gray-200 rounded-full px-3 py-1">{counter}</span>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 bg-white">
         {(Object.keys(categoryConfig) as Category[]).map((key) => {
           const config = categoryConfig[key]
           const Icon = config.icon
@@ -62,13 +65,16 @@ export function SuggestionSidebar({ editor, suggestions, onUpdateSuggestions }: 
             <button
               key={key}
               onClick={() => setActiveCategory(key)}
-              className={
-                `flex-1 flex flex-col items-center py-2 hover:bg-gray-50 ` +
-                (isActive ? `border-b-2 ${config.border}` : 'border-b-2 border-transparent')
-              }
+              className={`flex-1 flex flex-col items-center py-3 px-2 hover:bg-gray-50 transition-colors duration-150 ${
+                isActive ? `border-b-2 ${config.border} bg-gray-50` : "border-b-2 border-transparent"
+              }`}
             >
-              <Icon className={`w-4 h-4 mb-1 ${config.color}`} />
-              <span className={`text-[11px] font-medium uppercase ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>
+              <Icon className={`w-4 h-4 mb-1.5 ${config.color}`} />
+              <span
+                className={`text-[10px] font-medium uppercase tracking-wide ${
+                  isActive ? "text-gray-900" : "text-gray-600"
+                }`}
+              >
                 {key}
               </span>
             </button>
@@ -77,57 +83,69 @@ export function SuggestionSidebar({ editor, suggestions, onUpdateSuggestions }: 
       </div>
 
       {/* Suggestions list */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-        {filtered.map((s) => {
-          const config = categoryConfig[s.category]
-          return (
-            <div
-              key={s.id}
-              className="cursor-pointer p-4 rounded hover:bg-gray-50" // wrapper
-            >
-              {/* Indicator & title */}
-              <div className="flex items-start gap-2">
-                <span className={`mt-0.5 w-3.5 h-3.5 rounded-full ${config.bgColor} flex-shrink-0`}></span>
-                <div className="flex-1">
-                  <div className="text-[13px] font-semibold text-gray-900 mb-1">
-                    {s.category} – {s.title}
-                  </div>
-                  <div className="text-sm font-mono text-gray-700 mb-2" dangerouslySetInnerHTML={{ __html: s.excerpt }}></div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleAccept(s.id)
-                      }}
-                      className="h-6 px-3 rounded-md text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDismiss(s.id)
-                      }}
-                      className="text-xs text-gray-600 hover:text-gray-900"
-                    >
-                      Dismiss
-                    </button>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="ml-auto text-gray-500 hover:text-gray-700"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-3">
+          {filtered.map((s) => {
+            const config = categoryConfig[s.category]
+            return (
+              <div
+                key={s.id}
+                className="cursor-pointer p-4 rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all duration-150 bg-white"
+                onClick={() => onSelect?.(s)}
+              >
+                {/* Indicator & title */}
+                <div className="flex items-start gap-3">
+                  <span className={`mt-1 w-3 h-3 rounded-full ${config.bgColor} flex-shrink-0`}></span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-gray-900 mb-2 leading-tight">
+                      {s.category} – {s.title}
+                    </div>
+                    <div
+                      className="text-sm text-gray-700 mb-3 leading-relaxed font-mono bg-gray-50 p-3 rounded border"
+                      dangerouslySetInnerHTML={{ __html: s.excerpt }}
+                    />
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleAccept(s)
+                        }}
+                        className="px-4 py-2 rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-150"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDismiss(s)
+                        }}
+                        className="px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150"
+                      >
+                        Dismiss
+                      </button>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="ml-auto p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-150"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
+            )
+          })}
+          {filtered.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-2">
+                <CheckCircle2Icon className="w-8 h-8 mx-auto" />
+              </div>
+              <p className="text-sm text-gray-500 font-medium">No suggestions</p>
+              <p className="text-xs text-gray-400 mt-1">Your writing looks great!</p>
             </div>
-          )
-        })}
-        {filtered.length === 0 && (
-          <div className="text-center text-sm text-gray-500 mt-8">No suggestions</div>
-        )}
+          )}
+        </div>
       </div>
     </aside>
   )
-} 
+}
