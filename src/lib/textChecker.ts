@@ -210,6 +210,20 @@ export function checkText(text: string): Suggestion[] {
       }
     } else if (iss.type === "Punctuation") {
       candidates = [".", "?", "!"]
+    } else if (iss.type === "Capitalisation") {
+      // Extract the word inside the quotes to generate case options
+      const match = iss.message.match(/"\s*(.+?)\s*"/)
+      if (match) {
+        const word = match[1]
+        const lower = word.toLowerCase()
+        const proper = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        const upper = word.toUpperCase()
+        candidates = Array.from(new Set([lower, proper, upper])).filter((w) => w !== word)
+
+        // Build excerpt replacing current word with lowercase as primary fix
+        const primary = candidates[0] ?? lower
+        excerpt = `<del>${word}</del> → <strong>${primary}</strong>`
+      }
     }
 
     return {

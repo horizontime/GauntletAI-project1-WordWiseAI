@@ -278,6 +278,20 @@ export function EditorPage() {
         if (!match) return
         original = match[1]
         newReplacement = replacement
+      } else if (s.title === "Capitalisation") {
+        // Capitalisation fix, similar to sentence start but user picks replacement
+        if (!replacement) {
+          if (s.candidates && s.candidates.length > 0) {
+            replacement = s.candidates[0]
+          } else {
+            return
+          }
+        }
+
+        const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
+        if (!delMatch) return
+        original = delMatch[1]
+        newReplacement = replacement
       } else if (s.title === "Punctuation") {
         // Append the chosen punctuation at the end of the document.
         if (!replacement) {
