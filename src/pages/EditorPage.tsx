@@ -68,7 +68,7 @@ export function EditorPage() {
     content: "<p></p>",
     editorProps: {
       attributes: {
-        class: "editor-content prose prose-lg max-w-none focus:outline-none px-8 py-6",
+        class: "editor-content prose prose-lg max-w-none focus:outline-none px-8 py-6 bg-white mx-6 lg:mx-8 mt-6 rounded-lg shadow-sm border border-gray-200",
         spellcheck: "true",
         style: "white-space: pre-wrap; min-height: 500px;",
         "data-gramm": "false",
@@ -488,9 +488,7 @@ export function EditorPage() {
       )}
 
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white mx-6 lg:mx-8 mt-6 rounded-lg shadow-sm border border-gray-200 min-h-[600px]">
-          <EditorContent editor={editor} />
-        </div>
+        <EditorContent editor={editor} />
       </div>
 
       {/* Status Bar */}
