@@ -12,17 +12,21 @@ WordWise AI is a modern writing assistance application designed for college stud
 - ✅ Rich Text Editor with TipTap
   - Bold, Italic formatting
   - Heading levels (H1, H2, H3)
+  - Bullet & Numbered lists
   - Undo/Redo functionality
 - ✅ Auto-save every 1 second
 - ✅ Real-time word and character count
+- ✅ Basic grammar & spelling suggestions
+- ✅ Version history with restore & download
 - ✅ Responsive design for all devices
 - ✅ Clean, distraction-free interface
 
 ### Future Features (Post-MVP)
-- 🔮 AI-powered grammar and spell checking
-- 🔮 Style suggestions and readability analysis
+- 🔮 AI-powered grammar, style, and tone suggestions
+- 🔮 Readability analysis & advanced insights
 - 🔮 Context-aware writing recommendations
 - 🔮 Personalized writing improvement tracking
+- 🔮 Real-time collaboration & shared editing
 
 ## Tech Stack
 
@@ -104,9 +108,11 @@ WordWise/
 │   ├── components/                     # Reusable UI components
 │   │   ├── LoadingSpinner.tsx
 │   │   ├── Modal.tsx
-│   │   └── Sidebar.tsx
+│   │   ├── Sidebar.tsx
+│   │   └── SuggestionSidebar.tsx
 │   ├── lib/                            # Utility libraries & configurations
-│   │   └── supabase.ts                 # Supabase client configuration
+│   │   ├── supabase.ts
+│   │   └── textChecker.ts
 │   ├── pages/                          # Main application pages
 │   │   ├── AccountPage.tsx
 │   │   ├── AuthPage.tsx
@@ -114,10 +120,11 @@ WordWise/
 │   │   ├── EditorPage.tsx
 │   │   ├── TrashPage.tsx
 │   │   └── VersionHistoryPage.tsx
-│   └── stores/                         # Zustand state management
-│       ├── authStore.ts
-│       ├── documentStore.ts
-│       └── versionStore.ts
+│   ├── stores/                         # Zustand state management
+│   │   ├── authStore.ts
+│   │   ├── documentStore.ts
+│   │   └── versionStore.ts
+│   └── types/                          # Shared TypeScript types
 └── README.md                           # Documentation
 ```
 
