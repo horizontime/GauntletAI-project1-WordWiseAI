@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { supabase } from '../lib/supabase'
 
 export function AuthPage() {
   const [isSignIn, setIsSignIn] = useState(true)
@@ -42,6 +43,34 @@ export function AuthPage() {
     }
 
     setLoading(false)
+  }
+
+  // Handle demo (anonymous) login so users can try the app without creating an account
+  const handleDemoLogin = async () => {
+    setError('')
+    setSuccess('')
+    setLoading(true)
+
+    try {
+      // 1. Attempt to sign in with a pre-created demo account (recommended if it exists)
+      const { error: pwError } = await supabase.auth.signInWithPassword({
+        email: 'demo@wordwise.ai',
+        password: 'Demo123!'
+      })
+
+      if (pwError) {
+        // 2. Fallback to anonymous sign-in (requires Anonymous Sign-Ins enabled)
+        const { error: anonError } = await supabase.auth.signInAnonymously()
+        if (anonError) {
+          setError(anonError.message)
+        }
+      }
+      // On success, the global auth listener will redirect the user
+    } catch {
+      setError('Unable to start demo session. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -154,6 +183,21 @@ export function AuthPage() {
                 ? "Don't have an account? Sign up"
                 : "Already have an account? Sign in"
               }
+            </button>
+          </div>
+
+          {/* Demo login button */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="mt-4 group relative w-3/4 mx-auto flex justify-center py-2 px-4 border border-primary-600 text-sm font-medium rounded-md text-primary-600 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <LoadingSpinner size="sm" className="mr-2" />
+              ) : null}
+              Try demo (no account)
             </button>
           </div>
         </form>
