@@ -102,16 +102,18 @@ export function DashboardPage() {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Your Documents</h2>
-            <button
-              onClick={handleCreateDocument}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            >
-              <PlusIcon className="w-4 h-4 mr-2" />
-              New Document
-            </button>
-          </div>
+          {documents.length > 0 && (
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">Your Documents</h2>
+              <button
+                onClick={handleCreateDocument}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                New Document
+              </button>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex justify-center py-12">
