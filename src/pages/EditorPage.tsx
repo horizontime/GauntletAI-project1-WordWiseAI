@@ -102,15 +102,73 @@ export function EditorPage() {
     },
   })
 
+  /**
+   * Auto-save (debounced)
+   * ------------------------------------------------------------
+   * Instead of running an interval every second – even when there
+   * are no pending changes – we debounce the save call so it only
+   * fires once the user has been idle for the specified delay.
+   * This dramatically reduces the amount of work React needs to
+   * do while the editor is idle and prevents the "white screen"
+   * crash that appeared after leaving the tab open for a while.
+   */
+  const autoSave = useCallback(async () => {
+    if (!currentDocument || !editor || saving || !hasUnsavedChanges) return
+
+    const content = editor.getHTML()
+    await saveDocument(currentDocument.id, content, title)
+    setHasUnsavedChanges(false)
+  }, [currentDocument, editor, hasUnsavedChanges, saving, title, saveDocument])
+
+  // Debounce auto-save whenever there are unsaved changes.
+  useEffect(() => {
+    if (!hasUnsavedChanges) return
+
+    const timeout = window.setTimeout(autoSave, 1000) // 1 s idle period
+    return () => window.clearTimeout(timeout)
+  }, [hasUnsavedChanges, autoSave])
+
+  /* ------------------------------------------------------------------
+   * Manual interactions – save, title change, and navigation
+   * ------------------------------------------------------------------*/
+  const handleManualSave = async () => {
+    if (currentDocument && editor) {
+      const content = editor.getHTML()
+      await saveDocument(currentDocument.id, content, title)
+      setHasUnsavedChanges(false)
+    }
+  }
+
+  const handleTitleChange = (newTitle: string) => {
+    setTitle(newTitle)
+    setHasUnsavedChanges(true)
+  }
+
+  // Handle back navigation and version creation
+  const handleBackClick = async () => {
+    if (currentDocument && user) {
+      const content = editor?.getHTML() || currentDocument.content
+
+      // Ensure latest changes are persisted
+      await saveDocument(currentDocument.id, content, title)
+
+      // Record a new version entry
+      await createVersion(currentDocument.id, user.id, title || currentDocument.title, content)
+    }
+
+    navigate("/dashboard")
+  }
+
   // Initialize WProofreader for real-time grammar suggestions once the editor DOM is mounted.
   useEffect(() => {
     if (!editor) return
 
+    let instance: any
     try {
       // The editable element can be accessed via editor.view.dom.
       const container = (editor.view as any)?.dom as HTMLElement | null
       if (container) {
-        WProofreader.init({
+        instance = WProofreader.init({
           container,
           lang: "en_US",
           serviceId: "TDHiXV50gZlQaDw", // Demo service ID – replace with real key in production
@@ -119,6 +177,18 @@ export function EditorPage() {
     } catch (err) {
       // Fail silently – the proofreading service is optional.
       console.error("Failed to initialize WProofreader", err)
+    }
+
+    return () => {
+      // Ensure the proof-reader is cleaned up to avoid leaking DOM
+      // listeners that could crash the page after long idle periods.
+      if (instance && typeof instance.destroy === "function") {
+        try {
+          instance.destroy()
+        } catch (err) {
+          // Ignore – safe cleanup best-effort.
+        }
+      }
     }
   }, [editor])
 
@@ -170,49 +240,6 @@ export function EditorPage() {
     }
     // Only run when the document ID changes to avoid resetting content on each keystroke
   }, [currentDocument?.id, editor])
-
-  // Auto-save functionality
-  const autoSave = useCallback(async () => {
-    if (currentDocument && hasUnsavedChanges && !saving && editor) {
-      const content = editor.getHTML()
-      await saveDocument(currentDocument.id, content, title)
-      setHasUnsavedChanges(false)
-    }
-  }, [currentDocument, hasUnsavedChanges, saving, editor, title, saveDocument])
-
-  // Auto-save every 1 second
-  useEffect(() => {
-    const interval = setInterval(autoSave, 1000)
-    return () => clearInterval(interval)
-  }, [autoSave])
-
-  const handleManualSave = async () => {
-    if (currentDocument && editor) {
-      const content = editor.getHTML()
-      await saveDocument(currentDocument.id, content, title)
-      setHasUnsavedChanges(false)
-    }
-  }
-
-  const handleTitleChange = (newTitle: string) => {
-    setTitle(newTitle)
-    setHasUnsavedChanges(true)
-  }
-
-  // Handle back navigation and version creation
-  const handleBackClick = async () => {
-    if (currentDocument && user) {
-      const content = editor?.getHTML() || currentDocument.content
-
-      // Ensure latest changes are persisted
-      await saveDocument(currentDocument.id, content, title)
-
-      // Record a new version entry
-      await createVersion(currentDocument.id, user.id, title || currentDocument.title, content)
-    }
-
-    navigate("/dashboard")
-  }
 
   /**
    * Handle when the user clicks on a card just to navigate.
