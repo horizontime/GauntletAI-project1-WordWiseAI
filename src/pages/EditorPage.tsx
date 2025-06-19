@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react"
+import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import CharacterCount from "@tiptap/extension-character-count"
 import Placeholder from "@tiptap/extension-placeholder"
@@ -530,37 +530,11 @@ export function EditorPage() {
       </div>
 
       {/* Editor */}
-      {editor && (
-        <BubbleMenu
-          editor={editor}
-          tippyOptions={{
-            duration: 100,
-            onHide: () => setIsLinkSelectorOpen(false),
-          }}
-          shouldShow={() => !!editor && editor.state.selection.from !== editor.state.selection.to && isLinkSelectorOpen}
-          className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex items-center space-x-3"
-        >
-          <input
-            type="url"
-            value={linkUrl}
-            onChange={(e) => setLinkUrl(e.target.value)}
-            placeholder="Enter URL"
-            className="bg-transparent border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm px-3 py-2 min-w-[200px]"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                setLink()
-              }
-            }}
-          />
-          <button
-            onClick={setLink}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-150"
-          >
-            Apply
-          </button>
-        </BubbleMenu>
-      )}
+      {/*
+        BubbleMenu temporarily removed due to stability issues ("Failed to execute 'removeChild'" error
+        after long inactivity). Once the upstream issue in @tiptap/react is resolved or an alternative
+        link–editing UI is implemented, this block can be restored.
+      */}
 
       <div className="max-w-5xl mx-auto">
         <EditorContent editor={editor} />
