@@ -26,8 +26,6 @@ import {
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
-// @ts-ignore – the package ships without TypeScript types but works in runtime
-import WProofreader from "@webspellchecker/wproofreader-sdk-js"
 
 export function EditorPage() {
   const { documentId } = useParams()
@@ -158,39 +156,6 @@ export function EditorPage() {
 
     navigate("/dashboard")
   }
-
-  // Initialize WProofreader for real-time grammar suggestions once the editor DOM is mounted.
-  useEffect(() => {
-    if (!editor) return
-
-    let instance: any
-    try {
-      // The editable element can be accessed via editor.view.dom.
-      const container = (editor.view as any)?.dom as HTMLElement | null
-      if (container) {
-        instance = WProofreader.init({
-          container,
-          lang: "en_US",
-          serviceId: "TDHiXV50gZlQaDw", // Demo service ID – replace with real key in production
-        })
-      }
-    } catch (err) {
-      // Fail silently – the proofreading service is optional.
-      console.error("Failed to initialize WProofreader", err)
-    }
-
-    return () => {
-      // Ensure the proof-reader is cleaned up to avoid leaking DOM
-      // listeners that could crash the page after long idle periods.
-      if (instance && typeof instance.destroy === "function") {
-        try {
-          instance.destroy()
-        } catch (err) {
-          // Ignore – safe cleanup best-effort.
-        }
-      }
-    }
-  }, [editor])
 
   const openLinkSelector = useCallback(() => {
     if (!editor) return
