@@ -1,10 +1,26 @@
 import wordList from "an-array-of-english-words"
+import nspell from "nspell"
 
 /** --------------------------------------------------------------
  *  Dictionary – loaded once and reused
  * --------------------------------------------------------------*/
-const WORD_ARRAY = wordList.map((w) => w.toLowerCase())
-const DICT_LOWER = new Set<string>(WORD_ARRAY)
+// Build a minimal Hunspell‐style dictionary for nspell using the
+// existing word list.  We generate a simple affix file that only
+// defines the required UTF-8 encoding and pass all words (one per
+// line) as the dictionary body.  The first line of the dictionary
+// encodes the word count as required by the Hunspell format.
+
+const WORD_ARRAY = Array.from(new Set(wordList.map((w) => w.toLowerCase())))
+
+// Minimal affix: just declare UTF-8 so nspell is happy.
+const AFFIX_DATA = "SET UTF-8\n"
+
+// Hunspell dictionaries start with a line that indicates how many
+// entries follow.  We concatenate the unique words afterwards.
+const DICT_DATA = `${WORD_ARRAY.length}\n${WORD_ARRAY.join("\n")}`
+
+// Create the nspell instance once and reuse it for every invocation.
+const SPELLER = nspell({ aff: AFFIX_DATA, dic: DICT_DATA })
 
 /** --------------------------------------------------------------
  *  Regex helpers
@@ -64,51 +80,15 @@ function grammarCheck(text: string): Issue[] {
 /** --------------------------------------------------------------
  *  Levenshtein distance helper (small implementation)
  * --------------------------------------------------------------*/
-function levenshtein(a: string, b: string): number {
-  const m = a.length
-  const n = b.length
-  const dp: number[] = Array(n + 1)
-  for (let j = 0; j <= n; j++) dp[j] = j
-
-  for (let i = 1; i <= m; i++) {
-    let prev = i - 1
-    dp[0] = i
-    for (let j = 1; j <= n; j++) {
-      const tmp = dp[j]
-      if (a[i - 1] === b[j - 1]) {
-        dp[j] = prev
-      } else {
-        dp[j] = Math.min(prev + 1, dp[j] + 1, dp[j - 1] + 1)
-      }
-      prev = tmp
-    }
-  }
-  return dp[n]
-}
-
 function getClosestWords(word: string, limit = 3): string[] {
   const lower = word.toLowerCase()
 
-  // Fast path: if dictionary contains word, return empty array.
-  if (DICT_LOWER.has(lower)) return []
+  // If the word is known, nothing to suggest.
+  if (SPELLER.correct(lower)) return []
 
-  // Only consider words with the same first letter and length within ±2 to speed up.
-  const first = lower[0]
-  const len = lower.length
-
-  const candidates: { w: string; d: number }[] = []
-
-  for (const w of WORD_ARRAY) {
-    if (w[0] !== first) continue
-    if (Math.abs(w.length - len) > 2) continue
-    const dist = levenshtein(lower, w)
-    if (dist <= 3) {
-      candidates.push({ w, d: dist })
-    }
-  }
-
-  candidates.sort((a, b) => a.d - b.d)
-  return candidates.slice(0, limit).map((c) => c.w)
+  // nspell already returns suggestions ranked by edit distance and
+  // other heuristics.  Simply take the top results.
+  return SPELLER.suggest(lower).slice(0, limit)
 }
 
 function spellingCheck(text: string): Issue[] {
@@ -118,7 +98,7 @@ function spellingCheck(text: string): Issue[] {
     const word = m[0]
     const lower = word.toLowerCase()
 
-    if (!DICT_LOWER.has(lower)) {
+    if (!SPELLER.correct(lower)) {
       const suggestions = getClosestWords(word, 3)
       issues.push({
         type: "Spelling",
@@ -158,7 +138,7 @@ function capitalisationCheck(text: string): Issue[] {
       continue
     }
 
-    if (word[0] === word[0].toUpperCase() && !isAllCaps && DICT_LOWER.has(lower)) {
+    if (word[0] === word[0].toUpperCase() && !isAllCaps && SPELLER.correct(lower)) {
       issues.push({
         type: "Capitalisation",
         index: idx,
