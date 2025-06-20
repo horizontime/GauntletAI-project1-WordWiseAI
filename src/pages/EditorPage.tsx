@@ -10,6 +10,7 @@ import Link from "@tiptap/extension-link"
 import { CorrectnessUnderline, correctnessUnderlineKey } from "../extensions/CorrectnessUnderline"
 import { ClarityUnderline, clarityUnderlineKey } from "../extensions/ClarityUnderline"
 import { EngagementUnderline, engagementUnderlineKey } from "../extensions/EngagementUnderline"
+import { DeliveryUnderline, deliveryUnderlineKey } from "../extensions/DeliveryUnderline"
 import { useAuthStore } from "../stores/authStore"
 import { useDocumentStore } from "../stores/documentStore"
 import { useVersionStore } from "../stores/versionStore"
@@ -77,6 +78,7 @@ export function EditorPage() {
   // Loading state for AI suggestions
   const [clarityLoading, setClarityLoading] = useState(false)
   const [engagementLoading, setEngagementLoading] = useState(false)
+  const [deliveryLoading, setDeliveryLoading] = useState(false)
 
   // Track active sidebar category
   const [activeSidebarCategory, setActiveSidebarCategory] = useState<"Correctness" | "Clarity" | "Engagement" | "Delivery">("Correctness")
@@ -173,6 +175,7 @@ export function EditorPage() {
       CorrectnessUnderline,
       ClarityUnderline,
       EngagementUnderline,
+      DeliveryUnderline,
     ],
     content: "<p></p>",
     editorProps: {
@@ -354,6 +357,11 @@ export function EditorPage() {
         suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Engagement"),
       })
       editor.view.dispatch(tr3)
+
+      const tr4 = editor.view.state.tr.setMeta(deliveryUnderlineKey as any, {
+        suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Delivery"),
+      })
+      editor.view.dispatch(tr4)
     }
   }
 
@@ -405,7 +413,7 @@ export function EditorPage() {
         editor.chain().focus("end").insertContent(replacement).run()
         removeSuggestionById(s.id)
         return
-      } else if (s.category === "Clarity" || s.category === "Engagement") {
+      } else if (s.category === "Clarity" || s.category === "Engagement" || s.category === "Delivery") {
         const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
         const strongMatch = s.excerpt.match(/<strong>(.*?)<\/strong>/i)
         if (!delMatch || !strongMatch) return
@@ -672,6 +680,88 @@ export function EditorPage() {
     [openaiApiKey, refreshSuggestions],
   )
 
+  /* ------------------------------------------------------------------
+   * AI – Delivery analysis
+   * ----------------------------------------------------------------*/
+
+  const runDeliveryAnalysis = useCallback(
+    async (plain: string, ed: Editor | null) => {
+      if (!openaiApiKey || !plain.trim()) return
+      setDeliveryLoading(true)
+
+      try {
+        const prompt = `Revise the following between the textbox tags. Select the three sentences (Or one or two if there are less than three) that could use the most revision for delivery. Rewrite those three sentences to smooth out the flow and adjust tone to be encouraging and academic while keeping original meaning. Return an array with at most three sentences.<textbox>${plain}</textbox>`
+
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openaiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.4,
+          }),
+        })
+
+        const data = await res.json()
+        const rawContent: string = data?.choices?.[0]?.message?.content ?? ""
+
+        let rewrittenArr: string[] = []
+        try { rewrittenArr = JSON.parse(rawContent) } catch {
+          const m = rawContent.match(/\[.*\]/s)
+          if (m) { try { rewrittenArr = JSON.parse(m[0]) } catch {} }
+        }
+        if (!Array.isArray(rewrittenArr) || !rewrittenArr.length) return
+
+        const sentences = plain.match(RE_SENTENCE) ?? []
+        const usedIdx = new Set<number>()
+        const deliverySuggestions: Suggestion[] = []
+        let searchStart = 0
+
+        rewrittenArr.forEach((rewritten, i) => {
+          let bestIdx = -1, bestScore = 0
+          sentences.forEach((orig, idx) => {
+            if (usedIdx.has(idx)) return
+            const score = sentenceSimilarity(orig, rewritten)
+            if (score > bestScore) { bestScore = score; bestIdx = idx }
+          })
+          if (bestIdx === -1) return
+          usedIdx.add(bestIdx)
+          const originalSentence = sentences[bestIdx].trim()
+          const charIndex = findSubTextIndex(plain, originalSentence, searchStart)
+          if (charIndex === -1) return
+          searchStart = charIndex + originalSentence.length
+          deliverySuggestions.push({
+            id: `Delivery-${charIndex}-${i}`,
+            category: "Delivery",
+            title: "Delivery",
+            excerpt: `<del>${originalSentence}</del> → <strong>${rewritten.trim()}</strong>`,
+            index: charIndex,
+            length: originalSentence.length,
+          })
+        })
+
+        aiSuggestionsRef.current = [
+          ...aiSuggestionsRef.current.filter((sg) => sg.category !== "Delivery"),
+          ...deliverySuggestions,
+        ]
+        refreshSuggestions()
+
+        if (ed && ed.view) {
+          const tr = ed.view.state.tr.setMeta(deliveryUnderlineKey as any, { suggestions: deliverySuggestions })
+          ed.view.dispatch(tr)
+        }
+      } catch (err) {
+        console.error("Delivery suggestions error", err)
+      } finally {
+        setDeliveryLoading(false)
+      }
+    },
+    [openaiApiKey, refreshSuggestions],
+  )
+
   /* ------------------------------------------------------------
    * Handle category change events (trigger AI generation)
    * -----------------------------------------------------------*/
@@ -684,10 +774,13 @@ export function EditorPage() {
       } else if (cat === "Engagement") {
         const plain = editor?.getText() || ""
         runEngagementAnalysis(plain, editor)
+      } else if (cat === "Delivery") {
+        const plain = editor?.getText() || ""
+        runDeliveryAnalysis(plain, editor)
       }
       setActiveSidebarCategory(cat)
     },
-    [editor, runClarityAnalysis, runEngagementAnalysis],
+    [editor, runClarityAnalysis, runEngagementAnalysis, runDeliveryAnalysis],
   )
 
   if (loading) {
@@ -938,7 +1031,7 @@ export function EditorPage() {
           onAccept={handleAcceptSuggestion}
           onDismiss={handleDismissSuggestion}
           onCollapse={() => setIsSidebarCollapsed(true)}
-          loading={activeSidebarCategory === "Clarity" ? clarityLoading : activeSidebarCategory === "Engagement" ? engagementLoading : false}
+          loading={activeSidebarCategory === "Clarity" ? clarityLoading : activeSidebarCategory === "Engagement" ? engagementLoading : activeSidebarCategory === "Delivery" ? deliveryLoading : false}
           onCategoryChange={handleCategoryChange}
         />
       )}

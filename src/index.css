@@ -152,6 +152,13 @@
     text-decoration-style: wavy;
     text-decoration-thickness: 2px;
   }
+
+  .tiptap-delivery-underline {
+    text-decoration: underline;
+    text-decoration-color: #8b5cf6; /* purple-500 */
+    text-decoration-style: wavy;
+    text-decoration-thickness: 2px;
+  }
 }
 
 /* Custom narrow scrollbar */
