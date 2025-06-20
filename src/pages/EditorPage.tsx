@@ -579,7 +579,9 @@ export function EditorPage() {
             <div className="font-medium">
               Last saved:{" "}
               <span className="text-gray-900">
-                {currentDocument.updated_at ? new Date(currentDocument.updated_at).toLocaleTimeString() : "Never"}
+                {currentDocument.updated_at
+                  ? new Date(currentDocument.updated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                  : "Never"}
               </span>
             </div>
           </div>
