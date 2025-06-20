@@ -15,20 +15,20 @@ export interface AISuggestion extends Suggestion {
 // Prompt templates tailored to each improvement category. We keep them short so
 // they fit comfortably within the context window but still provide enough
 // guidance for the assistant.  We explicitly instruct the assistant to return
-// **no more than three** suggestions so that the UI receives exactly the number
+// **exactly three** suggestions so that the UI receives precisely the number
 // requested in the PRD.
 const SYSTEM_PROMPTS: Record<AICategory, string> = {
   Clarity:
-    "You are a writing coach who specialises in making prose concise, unambiguous and grammatically sound. Given some STUDENT_TEXT you will propose succinct rewrites that preserve meaning while improving clarity. Return ONLY valid JSON matching the schema and provide **at most 3** suggestions.",
+    "You are a writing coach who specialises in making prose concise, unambiguous and grammatically sound. Given some STUDENT_TEXT you will propose succinct rewrites that preserve meaning while improving clarity. Return ONLY valid JSON matching the schema and provide **exactly 3** suggestions.",
   Engagement:
-    "You are a writing coach who helps students craft vivid, compelling prose. Given some STUDENT_TEXT suggest rewrites that increase reader interest using descriptive language and storytelling devices. Return ONLY valid JSON matching the schema and provide **at most 3** suggestions.",
+    "You are a writing coach who helps students craft vivid, compelling prose. Given some STUDENT_TEXT suggest rewrites that increase reader interest using descriptive language and storytelling devices. Return ONLY valid JSON matching the schema and provide **exactly 3** suggestions.",
   Delivery:
-    "You are a writing coach focused on tone, flow and readability. Given some STUDENT_TEXT offer rewrites that smooth the flow, strengthen transitions and adopt an encouraging academic tone. Return ONLY valid JSON matching the schema and provide **at most 3** suggestions.",
+    "You are a writing coach focused on tone, flow and readability. Given some STUDENT_TEXT offer rewrites that smooth the flow, strengthen transitions and adopt an encouraging academic tone. Return ONLY valid JSON matching the schema and provide **exactly 3** suggestions.",
 }
 
 // The JSON schema we expect from the assistant. The assistant MUST respond
 // with an array of objects implementing the Suggestion interface.
-const JSON_SCHEMA_DESCRIPTION = `Return a JSON array (maximum 3 items) where each element has:
+const JSON_SCHEMA_DESCRIPTION = `Return a JSON array of exactly 3 items where each element has:
   id: string (uuid),
   title: string (always set to the category name),
   excerpt: string (HTML snippet using <del> and <strong> to show before/after),
@@ -109,14 +109,14 @@ export async function getSuggestions(
     // don't pollute other tabs.
     const normalised: AISuggestion[] = []
     for (const s of parsed) {
-      if (!s.category) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore – we populate the field post-parse.
-        s.category = category
-        normalised.push(s)
-      } else if (s.category === category) {
-        normalised.push(s)
-      }
+      // Force the category/title to match the one requested so that all
+      // returned items appear under the correct tab even if the assistant
+      // hallucinated or used a different label.
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore – we populate/override the fields post-parse.
+      s.category = category
+      s.title = category
+      normalised.push(s)
     }
 
     // Enforce max 3 suggestions as per updated requirements.
