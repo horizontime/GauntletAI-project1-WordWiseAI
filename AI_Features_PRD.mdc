@@ -1,0 +1,125 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# WordWise – AI Writing Assistance PRD
+
+## 0. Document Control
+* **Author:** Product & Engineering
+* **Version:** 0.1
+* **Last updated:** {{TODAY}}
+
+---
+
+## 1. Problem Statement
+Many students feel they lag behind in writing skills, leading to anxiety, lower grades, and reduced confidence. Existing grammar-checkers focus on surface-level correctness but rarely coach students on *how* to make their writing clearer, more engaging, and better delivered. WordWise aims to bridge this gap by adding three AI-powered suggestion categories—**Clarity**, **Engagement**, and **Delivery**—that do more than spot errors: they *teach* students how to elevate their prose.
+
+## 2. Goals
+1. Provide actionable, bite-sized AI suggestions that target higher-order writing skills, not just spelling/grammar.
+2. Keep the guidance student-friendly, avoiding jargon while explaining *why* a change helps.
+3. Deliver suggestions instantly (< 3 s) inside the existing sidebar without disrupting the writing flow.
+
+## 3. Non-Goals
+* Server-side scale, rate-limiting, or A/B testing (future work).
+* Deep style customization or teacher review workflows.
+
+## 4. User Persona
+* **Name:** Alex, 1st-year college student
+* **Pain Point:** Struggles to make essays concise and interesting; unsure how to improve tone.
+* **Success Metric:** Feels confident after accepting AI suggestions and sees grade improvements.
+
+---
+
+## 5. Functional Requirements
+### 5.1 Shared Framework
+F-1 The editor can request AI feedback for the active document.
+F-2 AI returns an array of `Suggestion` objects (`id`, `category`, `title`, `excerpt`, `candidates?`).
+F-3 Suggestions are grouped under Correctness, Clarity, Engagement, or Delivery tabs.
+F-4 Clicking **Accept** applies the replacement in-place; **Dismiss** removes the card.
+F-5 Max 5 suggestions rendered per category to avoid overload (pagination later).
+
+### 5.2 Category-Specific Requirements
+| Category | Purpose | Example Prompt | Expected Output |
+|----------|---------|----------------|-----------------|
+| **Clarity** | Make sentences concise, unambiguous, grammatically sound. | "Rewrite the following sentence for conciseness and clarity while keeping original meaning…" | Shorter rewritten sentence; explanation phrase. |
+| **Engagement** | Increase reader interest using vivid language and storytelling devices. | "Suggest a more vivid rewrite that paints a stronger mental image…" | Rewritten sentence with descriptive verbs/adjectives. |
+| **Delivery** | Improve tone, flow, and readability so ideas land effectively. | "Smooth out the flow and adjust tone to be encouraging and academic…" | Rewritten paragraph with improved transitions. |
+
+---
+
+## 6. Technical Design (High-Level)
+1. **OpenAIService (new `lib/openai.ts`)**
+   * Wraps `fetch('https://api.openai.com/v1/chat/completions')` with API-key from `VITE_OPENAI_KEY`.
+   * Accepts `{text, category}` and returns parsed suggestions.
+2. **Prompt Templates** per category with few-shot examples to steer tone.
+3. **SuggestionGenerator Hook** (`useSuggestions`) orchestrates:
+   1. Debounce editor content (1 s idle).
+   2. Call `OpenAIService` for each enabled category.
+   3. Merge with existing Correctness results.
+4. **SuggestionSidebar** already supports categories; only minor styling tweaks needed.
+
+---
+
+## 7. Task Breakdown & Order of Execution
+### EPIC 0 – Foundations
+- [ ] **T0.1** Add `VITE_OPENAI_KEY` to `.env` and update README.
+- [ ] **T0.2** Create `OpenAIService` with generic `getSuggestions(text, category)`.
+- [ ] **T0.3** Define TypeScript `AISuggestion` extending existing `Suggestion`.
+- [ ] **T0.4** Write Jest tests mocking OpenAI responses.
+
+### EPIC 1 – Clarity Suggestions
+1. **Prompt & Parsing**
+   - [ ] **C1.1** Draft system + user prompt template for clarity.
+   - [ ] **C1.2** Implement `parseClarityResponse()` util returning `AISuggestion[]`.
+2. **UI Integration**
+   - [ ] **C1.3** Show Clarity suggestions in sidebar (tab exists).
+   - [ ] **C1.4** On Accept, replace sentence; highlight diff.
+3. **QA & Acceptance**
+   - [ ] **C1.5** Unit tests with 3 sample sentences.
+
+### EPIC 2 – Engagement Suggestions
+1. **Prompt & Parsing**
+   - [ ] **E2.1** Craft prompt emphasizing vivid language & storytelling.
+   - [ ] **E2.2** Create `parseEngagementResponse()` util.
+2. **UI Integration**
+   - [ ] **E2.3** Display rationale in italic under excerpt.
+3. **QA & Acceptance**
+   - [ ] **E2.4** Manual test: bland paragraph → vivid rewrite.
+
+### EPIC 3 – Delivery Suggestions
+1. **Prompt & Parsing**
+   - [ ] **D3.1** Prompt focusing on tone, flow, readability.
+   - [ ] **D3.2** Implement `parseDeliveryResponse()` util.
+2. **UI Integration**
+   - [ ] **D3.3** Provide before/after readability score via `readability.js` (stretch).
+3. **QA & Acceptance**
+   - [ ] **D3.4** Usability session with 3 students.
+
+### EPIC 4 – Polishing & Metrics
+- [ ] **P4.1** Ensure performance budget: response < 3 s (log timings).
+- [ ] **P4.2** Copy review: verify feedback is encouraging, student-friendly.
+- [ ] **P4.3** Update onboarding tooltip to introduce new tabs.
+
+---
+
+## 8. Acceptance Criteria (Per Category)
+1. Suggestions load within 3 s for a 500-word essay.
+2. Accepting a suggestion updates the document and removes the card.
+3. Dismissing hides the card permanently for the session.
+
+---
+
+## 9. Appendix – Prompt Template (Clarity v1)
+```
+SYSTEM: You are a writing coach helping students write concise, clear sentences.
+USER: <original_sentence>
+ASSISTANT: {
+  "id": "<uuid>",
+  "title": "Clarity",
+  "excerpt": "<del>original</del> <strong>concise rewrite</strong>",
+  "candidates": ["concise rewrite"]
+}
+```
+(Engagement and Delivery follow the same JSON schema with tailored coaching instructions.)
+
