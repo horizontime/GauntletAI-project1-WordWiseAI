@@ -156,6 +156,8 @@ export interface Suggestion {
   title: string
   excerpt: string // simple HTML snippet
   candidates?: string[] // optional replacement list for spelling
+  /** 0-based character offset of the start of the problematic word */
+  index: number
 }
 
 export function checkText(text: string): Suggestion[] {
@@ -212,6 +214,7 @@ export function checkText(text: string): Suggestion[] {
       title: iss.type,
       excerpt,
       candidates,
+      index: iss.index,
     }
   })
 } 

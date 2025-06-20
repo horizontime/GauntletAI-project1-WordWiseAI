@@ -7,6 +7,7 @@ import StarterKit from "@tiptap/starter-kit"
 import CharacterCount from "@tiptap/extension-character-count"
 import Placeholder from "@tiptap/extension-placeholder"
 import Link from "@tiptap/extension-link"
+import { CorrectnessUnderline, correctnessUnderlineKey } from "../extensions/CorrectnessUnderline"
 import { useAuthStore } from "../stores/authStore"
 import { useDocumentStore } from "../stores/documentStore"
 import { useVersionStore } from "../stores/versionStore"
@@ -75,6 +76,7 @@ export function EditorPage() {
         autolink: true,
         linkOnPaste: true,
       }),
+      CorrectnessUnderline,
     ],
     content: "<p></p>",
     editorProps: {
@@ -94,10 +96,7 @@ export function EditorPage() {
       setHasUnsavedChanges(true)
 
       const plainText = editor.getText()
-      const detected = checkText(plainText)
-      // Filter out any suggestions that the user has previously dismissed.
-      const filtered = detected.filter((sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)))
-      setSuggestions(filtered)
+      runSuggestionCheck(plainText)
     },
   })
 
@@ -356,6 +355,40 @@ export function EditorPage() {
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [])
+
+  // Debounce timer reference for expensive suggestion checks
+  const checkTimerRef = useRef<number | null>(null)
+
+  // Helper to execute the heavy text check asynchronously
+  const runSuggestionCheck = useCallback(
+    (plain: string) => {
+      // Clear any pending timer
+      if (checkTimerRef.current) {
+        window.clearTimeout(checkTimerRef.current)
+      }
+
+      // Debounce 600 ms after the last keystroke
+      checkTimerRef.current = window.setTimeout(() => {
+        // Yield back to the event loop first to avoid blocking the input handler
+        setTimeout(() => {
+          const detected = checkText(plain)
+          const filtered = detected.filter(
+            (sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)),
+          )
+          setSuggestions(filtered)
+
+          // Send to underline plugin
+          if (editor && editor.view) {
+            const tr = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+              suggestions: filtered,
+            })
+            editor.view.dispatch(tr)
+          }
+        }, 0)
+      }, 600)
+    },
+    [editor],
+  )
 
   if (loading) {
     return (

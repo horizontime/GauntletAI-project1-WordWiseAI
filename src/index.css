@@ -129,6 +129,14 @@
   .ProseMirror pre {
     @apply bg-gray-100 p-4 rounded font-mono text-sm overflow-x-auto;
   }
+
+  /* Highlight for correctness issues */
+  .tiptap-correctness-underline {
+    text-decoration: underline;
+    text-decoration-color: #ef4444; /* red-500 */
+    text-decoration-style: wavy;
+    text-decoration-thickness: 2px;
+  }
 }
 
 /* Custom narrow scrollbar */
