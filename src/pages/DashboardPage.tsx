@@ -19,6 +19,9 @@ export function DashboardPage() {
     restoreDocument
   } = useDocumentStore()
   
+  // Determine if the current session is a demo / guest session
+  const isDemoUser = user && (!user.email || user.email === 'demo@wordwise.ai')
+
   useEffect(() => {
     if (user) {
       fetchDocuments(user.id)
@@ -94,7 +97,9 @@ export function DashboardPage() {
             <div className="flex justify-between items-center py-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">WordWise AI</h1>
-                <p className="text-sm text-gray-600">Welcome back, {user?.email}</p>
+                <p className="text-sm text-gray-600">
+                  {isDemoUser ? 'Welcome, Guest.' : `Welcome back, ${user?.email}`}
+                </p>
               </div>
             </div>
           </div>
