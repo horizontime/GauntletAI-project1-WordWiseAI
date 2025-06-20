@@ -63,6 +63,9 @@ Create a `.env.local` file in the root directory with the following content:
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 
+# OpenAI – required for AI suggestion features
+VITE_OPENAI_KEY=
+
 # Optional: For development
 VITE_APP_ENV=development
 ```
