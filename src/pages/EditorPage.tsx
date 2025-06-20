@@ -26,7 +26,6 @@ import {
   SaveIcon,
   ArrowLeftIcon,
   FileTextIcon,
-  LinkIcon,
   ChevronsLeft,
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
@@ -67,8 +66,6 @@ export function EditorPage() {
 
   const [title, setTitle] = useState("")
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false)
-  const [linkUrl, setLinkUrl] = useState("")
 
   // ------------------------------------------------------------
   // Suggestion management
@@ -151,8 +148,6 @@ export function EditorPage() {
     }
     checkTimerRef.current = window.setTimeout(perform, 600)
   }
-
-  const [plainText, setPlainText] = useState("")
 
   const editor = useEditor({
     extensions: [
@@ -255,55 +250,6 @@ export function EditorPage() {
 
     navigate("/dashboard")
   }
-
-  const openLinkSelector = useCallback(() => {
-    if (!editor) return
-    const { selection } = editor.state
-    if (selection.empty) return
-
-    const url = editor.getAttributes("link").href || ""
-    setLinkUrl(url)
-    setIsLinkSelectorOpen(true)
-  }, [editor])
-
-  const setLink = useCallback(() => {
-    if (!editor) return
-
-    if (linkUrl === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run()
-    } else {
-      editor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run()
-    }
-    setIsLinkSelectorOpen(false)
-    setLinkUrl("")
-  }, [editor, linkUrl])
-
-  // Load document on mount
-  useEffect(() => {
-    const initializeDocument = async () => {
-      if (documentId) {
-        await loadDocument(documentId)
-      } else if (user) {
-        // Create new document if no ID provided
-        const newDoc = await createDocument(user.id)
-        if (newDoc) {
-          navigate(`/editor/${newDoc.id}`, { replace: true })
-        }
-      }
-    }
-
-    initializeDocument()
-  }, [documentId, user, loadDocument, createDocument, navigate, currentDocument?.id])
-
-  // Update editor content when document loads
-  useEffect(() => {
-    if (currentDocument && editor) {
-      setTitle(currentDocument.title)
-      editor.commands.setContent(currentDocument.content || "")
-      setHasUnsavedChanges(false)
-    }
-    // Only run when the document ID changes to avoid resetting content on each keystroke
-  }, [currentDocument?.id, editor])
 
   /**
    * Handle when the user clicks on a card just to navigate.
@@ -783,6 +729,33 @@ export function EditorPage() {
     [editor, runClarityAnalysis, runEngagementAnalysis, runDeliveryAnalysis],
   )
 
+  // Load document on mount
+  useEffect(() => {
+    const initializeDocument = async () => {
+      if (documentId) {
+        await loadDocument(documentId)
+      } else if (user) {
+        // Create new document if no ID provided
+        const newDoc = await createDocument(user.id)
+        if (newDoc) {
+          navigate(`/editor/${newDoc.id}`, { replace: true })
+        }
+      }
+    }
+
+    initializeDocument()
+  }, [documentId, user, loadDocument, createDocument, navigate, currentDocument?.id])
+
+  // Update editor content when document loads
+  useEffect(() => {
+    if (currentDocument && editor) {
+      setTitle(currentDocument.title)
+      editor.commands.setContent(currentDocument.content || "")
+      setHasUnsavedChanges(false)
+    }
+    // Only run when the document ID changes to avoid resetting content on each keystroke
+  }, [currentDocument?.id, editor])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -898,22 +871,6 @@ export function EditorPage() {
             >
               <ItalicIcon className="w-4 h-4" />
             </button>
-
-            {/* 
-            <button
-              onMouseDown={(e) => {
-                e.preventDefault()
-                openLinkSelector()
-              }}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("link")
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              <LinkIcon className="w-4 h-4" />
-            </button>
-            */}
 
             <div className="w-px h-6 bg-gray-300 mx-3"></div>
 

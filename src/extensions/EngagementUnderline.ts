@@ -26,7 +26,7 @@ export const EngagementUnderline = Extension.create({
   name: "engagementUnderline",
   addProseMirrorPlugins() {
     const buildDecos = (doc: any, _sel: any, suggestions: CheckerSuggestion[]): DecorationSet => {
-      const plain = doc.textContent
+      void _sel
       const decos: Decoration[] = []
       suggestions.forEach((s) => {
         if (s.category !== "Engagement" || s.index == null) return

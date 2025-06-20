@@ -23,16 +23,6 @@ function charIndexToPos(doc: any, charIndex: number): number | null {
   return found
 }
 
-function posToCharIndex(doc: any, targetPos: number): number {
-  let charIdx = 0
-  doc.descendants((node: any, pos: number) => {
-    if (pos >= targetPos) return false
-    if (node.isText) charIdx += node.text?.length || 0
-    return true
-  })
-  return charIdx
-}
-
 export const clarityUnderlineKey = new PluginKey("clarityUnderline")
 
 export const ClarityUnderline = Extension.create({
@@ -40,6 +30,8 @@ export const ClarityUnderline = Extension.create({
 
   addProseMirrorPlugins() {
     const buildDecos = (doc: any, sel: any, suggestions: CheckerSuggestion[]): DecorationSet => {
+      // Mark selection parameter as read to avoid TS6133 when strict noUnusedParameters is enabled
+      void sel
       const plain = doc.textContent
 
       const decos: Decoration[] = []
