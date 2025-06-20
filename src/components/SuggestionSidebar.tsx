@@ -122,7 +122,7 @@ export function SuggestionSidebar({
                   <span className={`mt-1 w-3 h-3 rounded-full ${config.bgColor} flex-shrink-0`}></span>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-gray-900 mb-2 leading-tight">
-                      {s.category} – {s.title}
+                      {s.title}
                     </div>
                     <div
                       className="text-sm text-gray-700 mb-3 leading-relaxed font-mono bg-gray-50 p-3 rounded border"
