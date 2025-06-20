@@ -104,10 +104,23 @@ export async function getSuggestions(
     const raw = await callOpenAI(text, category)
     const jsonString = stripMarkdownFences(raw)
     const parsed = JSON.parse(jsonString) as AISuggestion[]
-    // Ensure the category is set correctly (the assistant may omit it).
-    parsed.forEach((s) => (s.category = category))
+    // Normalise category field: if missing, fill with requested category; if
+    // present but mismatched (e.g. assistant hallucinated), discard so we
+    // don't pollute other tabs.
+    const normalised: AISuggestion[] = []
+    for (const s of parsed) {
+      if (!s.category) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore – we populate the field post-parse.
+        s.category = category
+        normalised.push(s)
+      } else if (s.category === category) {
+        normalised.push(s)
+      }
+    }
+
     // Enforce max 3 suggestions as per updated requirements.
-    return parsed.slice(0, 3)
+    return normalised.slice(0, 3)
   } catch (err) {
     console.error("[OpenAIService]", err)
     return []
