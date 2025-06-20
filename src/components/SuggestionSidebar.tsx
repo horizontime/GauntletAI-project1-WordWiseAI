@@ -27,6 +27,8 @@ export interface Suggestion {
   title: string // short action phrase
   excerpt: string // HTML string with <del> and <strong> etc.
   candidates?: string[]
+  /** Optional 0-based character index for underline mapping */
+  index?: number
 }
 
 interface Props {
@@ -40,6 +42,8 @@ interface Props {
   onDismiss?: (suggestion: Suggestion) => void
   /** Collapse request from inside the sidebar */
   onCollapse?: () => void
+  /** Notify parent when user switches between category tabs */
+  onCategoryChange?: (category: Category) => void
 }
 
 export function SuggestionSidebar({
@@ -49,6 +53,7 @@ export function SuggestionSidebar({
   onAccept,
   onDismiss,
   onCollapse,
+  onCategoryChange,
 }: Props) {
   const [activeCategory, setActiveCategory] = useState<Category>("Correctness")
 
@@ -88,7 +93,10 @@ export function SuggestionSidebar({
           return (
             <button
               key={key}
-              onClick={() => setActiveCategory(key)}
+              onClick={() => {
+                setActiveCategory(key)
+                onCategoryChange?.(key)
+              }}
               className={`flex-1 flex flex-col items-center py-3 px-2 hover:bg-gray-50 transition-colors duration-150 ${
                 isActive ? `border-b-2 ${config.border} bg-gray-50` : "border-b-2 border-transparent"
               }`}

@@ -8,6 +8,7 @@ import CharacterCount from "@tiptap/extension-character-count"
 import Placeholder from "@tiptap/extension-placeholder"
 import Link from "@tiptap/extension-link"
 import { CorrectnessUnderline, correctnessUnderlineKey } from "../extensions/CorrectnessUnderline"
+import { ClarityUnderline, clarityUnderlineKey } from "../extensions/ClarityUnderline"
 import { useAuthStore } from "../stores/authStore"
 import { useDocumentStore } from "../stores/documentStore"
 import { useVersionStore } from "../stores/versionStore"
@@ -28,6 +29,30 @@ import {
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
+
+// Utility to split text into sentences (rough approximation)
+const RE_SENTENCE = /[^.!?]+[.!?]*/g
+
+/**
+ * Find the start character index of a substring within text, accounting for
+ * repeated substrings by providing an offset to start searching from.
+ */
+function findSubTextIndex(text: string, sub: string, fromIdx = 0): number {
+  const idx = text.indexOf(sub, fromIdx)
+  return idx
+}
+
+/** Compute a simple Jaccard similarity between two sentences */
+function sentenceSimilarity(a: string, b: string): number {
+  const setA = new Set(a.toLowerCase().split(/[^a-zA-Z']+/).filter(Boolean))
+  const setB = new Set(b.toLowerCase().split(/[^a-zA-Z']+/).filter(Boolean))
+  if (!setA.size || !setB.size) return 0
+  let intersect = 0
+  setA.forEach((w) => {
+    if (setB.has(w)) intersect += 1
+  })
+  return intersect / Math.max(setA.size, setB.size)
+}
 
 export function EditorPage() {
   const { documentId } = useParams()
@@ -138,6 +163,7 @@ export function EditorPage() {
         linkOnPaste: true,
       }),
       CorrectnessUnderline,
+      ClarityUnderline,
     ],
     content: "<p></p>",
     editorProps: {
@@ -303,12 +329,17 @@ export function EditorPage() {
     aiSuggestionsRef.current = aiSuggestionsRef.current.filter((sg) => sg.id !== id)
     refreshSuggestions()
 
-    // Immediately update the underline extension to reflect the change.
+    // Immediately update underline extensions to reflect the change.
     if (editor && editor.view) {
-      const tr = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+      const tr1 = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
         suggestions: grammarSuggestionsRef.current,
       })
-      editor.view.dispatch(tr)
+      editor.view.dispatch(tr1)
+
+      const tr2 = editor.view.state.tr.setMeta(clarityUnderlineKey as any, {
+        suggestions: aiSuggestionsRef.current,
+      })
+      editor.view.dispatch(tr2)
     }
   }
 
@@ -360,6 +391,13 @@ export function EditorPage() {
         editor.chain().focus("end").insertContent(replacement).run()
         removeSuggestionById(s.id)
         return
+      } else if (s.category === "Clarity") {
+        const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
+        const strongMatch = s.excerpt.match(/<strong>(.*?)<\/strong>/i)
+        if (!delMatch || !strongMatch) return
+
+        original = delMatch[1]
+        newReplacement = strongMatch[1]
       } else {
         return
       }
@@ -424,6 +462,120 @@ export function EditorPage() {
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [])
+
+  /* ------------------------------------------------------------------
+   *  AI – Clarity analysis via OpenAI
+   * ----------------------------------------------------------------*/
+
+  const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined
+
+  const runClarityAnalysis = useCallback(
+    async (plain: string, ed: Editor | null) => {
+      if (!openaiApiKey || !plain.trim()) return
+
+      try {
+        const prompt = `Revise the following between the textbox tags. Select the three sentences (Or one or two if there are less than three) that could use the most revision for clarity. Rewrite those three sentences for conciseness and clarity while keeping original meaning. Return an array with at most three sentences.<textbox>${plain}</textbox>`
+
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openaiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.4,
+          }),
+        })
+
+        const data = await res.json()
+        const rawContent: string = data?.choices?.[0]?.message?.content ?? ""
+
+        // Attempt to parse as JSON array; fallback to extracting bracketed content
+        let rewrittenArr: string[] = []
+        try {
+          rewrittenArr = JSON.parse(rawContent)
+        } catch {
+          const m = rawContent.match(/\[.*\]/s)
+          if (m) {
+            try {
+              rewrittenArr = JSON.parse(m[0])
+            } catch {
+              /* empty */
+            }
+          }
+        }
+
+        if (!Array.isArray(rewrittenArr) || !rewrittenArr.length) return
+
+        // Map rewritten sentences back to originals
+        const sentences = plain.match(RE_SENTENCE) ?? []
+        const usedIdx = new Set<number>()
+
+        const claritySuggestions: Suggestion[] = []
+        let searchStart = 0
+
+        rewrittenArr.forEach((rewritten, i) => {
+          // Find best matching original sentence not yet used
+          let bestIdx = -1
+          let bestScore = 0
+          sentences.forEach((orig, idx) => {
+            if (usedIdx.has(idx)) return
+            const score = sentenceSimilarity(orig, rewritten)
+            if (score > bestScore) {
+              bestScore = score
+              bestIdx = idx
+            }
+          })
+
+          if (bestIdx === -1) return
+          usedIdx.add(bestIdx)
+
+          const originalSentence = sentences[bestIdx].trim()
+          const charIndex = findSubTextIndex(plain, originalSentence, searchStart)
+          if (charIndex === -1) return
+
+          searchStart = charIndex + originalSentence.length
+
+          claritySuggestions.push({
+            id: `Clarity-${charIndex}-${i}`,
+            category: "Clarity",
+            title: "Clarity",
+            excerpt: `<del>${originalSentence}</del> → <strong>${rewritten.trim()}</strong>`,
+            index: charIndex,
+          })
+        })
+
+        aiSuggestionsRef.current = claritySuggestions
+        refreshSuggestions()
+
+        if (ed && ed.view) {
+          const tr = ed.view.state.tr.setMeta(clarityUnderlineKey as any, {
+            suggestions: claritySuggestions,
+          })
+          ed.view.dispatch(tr)
+        }
+      } catch (err) {
+        console.error("Error generating clarity suggestions", err)
+      }
+    },
+    [openaiApiKey, refreshSuggestions],
+  )
+
+  /* ------------------------------------------------------------
+   * Handle category change events (trigger AI generation)
+   * -----------------------------------------------------------*/
+
+  const handleCategoryChange = useCallback(
+    (cat: "Correctness" | "Clarity" | "Engagement" | "Delivery") => {
+      if (cat === "Clarity") {
+        const plain = editor?.getText() || ""
+        runClarityAnalysis(plain, editor)
+      }
+    },
+    [editor, runClarityAnalysis],
+  )
 
   if (loading) {
     return (
@@ -673,8 +825,13 @@ export function EditorPage() {
           onAccept={handleAcceptSuggestion}
           onDismiss={handleDismissSuggestion}
           onCollapse={() => setIsSidebarCollapsed(true)}
+          onCategoryChange={handleCategoryChange}
         />
       )}
     </div>
   )
 }
+
+/* ------------------------------------------------------------------
+ *  OpenAI Clarity analysis
+ * ----------------------------------------------------------------*/
