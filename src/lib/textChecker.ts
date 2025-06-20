@@ -103,7 +103,7 @@ function spellingCheck(text: string): Issue[] {
       issues.push({
         type: "Spelling",
         index: m.index,
-        message: `" ${word} " is not in the dictionary.${
+        message: `"${word}" is not in a word.${
           suggestions.length ? ` Did you mean: ${suggestions.join(", ")}?` : ""
         }`,
       })

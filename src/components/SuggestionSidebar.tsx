@@ -146,34 +146,51 @@ export function SuggestionSidebar({
                       </div>
                     )}
 
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          // If spelling suggestion with candidates, pick first candidate by default
-                          const replacement = s.candidates && s.candidates.length > 0 ? s.candidates[0] : undefined
-                          handleAccept(s, replacement)
-                        }}
-                        className="px-4 py-2 rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-150"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDismiss(s)
-                        }}
-                        className="px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150"
-                      >
-                        Dismiss
-                      </button>
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="ml-auto p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-150"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {(() => {
+                      // Hide the "Accept" button (and the extra options) for spelling suggestions of the form
+                      // "<word> is not in a word. Did you mean: <alt>?".  Only keep the Dismiss button, centred.
+                      const hideAccept =
+                        s.title === "Spelling" && /is not in a word/i.test(s.excerpt)
+
+                      return (
+                        <div
+                          className={`flex items-center gap-3 ${hideAccept ? "justify-center" : ""}`}
+                        >
+                          {!hideAccept && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const replacement =
+                                  s.candidates && s.candidates.length > 0 ? s.candidates[0] : undefined
+                                handleAccept(s, replacement)
+                              }}
+                              className="px-4 py-2 rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-150"
+                            >
+                              Accept
+                            </button>
+                          )}
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDismiss(s)
+                            }}
+                            className="px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md border border-gray-300 transition-colors duration-150 bg-gray-100"
+                          >
+                            Dismiss
+                          </button>
+
+                          {!hideAccept && (
+                            <button
+                              onClick={(e) => e.stopPropagation()}
+                              className="ml-auto p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-150"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               </div>
