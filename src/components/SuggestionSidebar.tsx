@@ -113,7 +113,7 @@ export function SuggestionSidebar({
                   isActive ? "text-gray-900" : "text-gray-600"
                 }`}
               >
-                {key}
+                {key === "Correctness" ? "SPELLCHECK" : key}
               </span>
             </button>
           )
