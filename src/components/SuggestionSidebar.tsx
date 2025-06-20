@@ -2,7 +2,14 @@
 
 import { useState } from "react"
 import type { Editor } from "@tiptap/react"
-import { CheckCircle2Icon, InfoIcon, SparklesIcon, SendIcon, MoreVertical } from "lucide-react"
+import {
+  CheckCircle2Icon,
+  InfoIcon,
+  SparklesIcon,
+  SendIcon,
+  MoreVertical,
+  ChevronsRight,
+} from "lucide-react"
 
 // Colors for each category
 const categoryConfig = {
@@ -31,9 +38,18 @@ interface Props {
   onAccept?: (suggestion: Suggestion, replacement?: string) => void
   /** Triggered when the user dismisses a suggestion. */
   onDismiss?: (suggestion: Suggestion) => void
+  /** Collapse request from inside the sidebar */
+  onCollapse?: () => void
 }
 
-export function SuggestionSidebar({ editor: _editor, suggestions, onSelect, onAccept, onDismiss }: Props) {
+export function SuggestionSidebar({
+  editor: _editor,
+  suggestions,
+  onSelect,
+  onAccept,
+  onDismiss,
+  onCollapse,
+}: Props) {
   const [activeCategory, setActiveCategory] = useState<Category>("Correctness")
 
   const filtered = suggestions.filter((s) => s.category === activeCategory)
@@ -50,9 +66,16 @@ export function SuggestionSidebar({ editor: _editor, suggestions, onSelect, onAc
 
   return (
     <aside className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl flex flex-col z-20">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-gray-200 bg-white">
-        <h2 className="text-base font-semibold text-gray-900">Review suggestions</h2>
+      {/* Header with collapse button */}
+      <div className="flex items-center justify-between px-4 py-4 border-gray-200 bg-white">
+        <button
+          onClick={onCollapse}
+          className="p-2 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors duration-150"
+          aria-label="Collapse suggestion panel"
+        >
+          <ChevronsRight className="w-4 h-4" />
+        </button>
+        <h2 className="flex-1 text-base font-semibold text-gray-900 text-center">Review suggestions</h2>
         <span className="text-sm font-bold text-gray-700 bg-gray-200 rounded-full px-3 py-1">{counter}</span>
       </div>
 

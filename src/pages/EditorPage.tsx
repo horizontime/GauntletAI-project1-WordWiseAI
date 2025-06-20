@@ -23,6 +23,7 @@ import {
   ArrowLeftIcon,
   FileTextIcon,
   LinkIcon,
+  ChevronsLeft,
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
@@ -336,6 +337,26 @@ export function EditorPage() {
     dismissedSuggestionKeysRef.current = new Set()
   }, [currentDocument?.id])
 
+  // Sidebar collapse state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false)
+
+  // Automatically collapse sidebar on smaller screens (<1280px)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1280) {
+        setIsSidebarCollapsed(true)
+      } else {
+        setIsSidebarCollapsed(false)
+      }
+    }
+
+    // Initialize
+    handleResize()
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -367,8 +388,11 @@ export function EditorPage() {
   const wordCount = editor?.storage.characterCount.words() || 0
   const characterCount = editor?.storage.characterCount.characters() || 0
 
+  // Dynamic classes depending on sidebar state
+  const statusBarClassName = `fixed bottom-0 left-0 ${isSidebarCollapsed ? "right-0" : "right-80"} bg-white border-t border-gray-200 shadow-sm`
+
   return (
-    <div className="min-h-screen bg-gray-50 pr-80">
+    <div className="min-h-screen bg-gray-50  mx-auto">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
@@ -541,7 +565,7 @@ export function EditorPage() {
       </div>
 
       {/* Status Bar */}
-      <div className="fixed bottom-0 left-0 right-80 bg-white border-t border-gray-200 shadow-sm">
+      <div className={statusBarClassName}>
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 text-sm text-gray-600">
             <div className="flex items-center space-x-6">
@@ -562,14 +586,25 @@ export function EditorPage() {
         </div>
       </div>
 
-      {/* Grammarly-like sidebar */}
-      <SuggestionSidebar
-        editor={editor}
-        suggestions={suggestions}
-        onSelect={handleSelectSuggestion}
-        onAccept={handleAcceptSuggestion}
-        onDismiss={handleDismissSuggestion}
-      />
+      {/* Render collapsed toggle button */}
+      {isSidebarCollapsed ? (
+        <button
+          onClick={() => setIsSidebarCollapsed(false)}
+          className="fixed right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Open suggestion panel"
+        >
+          <ChevronsLeft className="w-4 h-4" />
+        </button>
+      ) : (
+        <SuggestionSidebar
+          editor={editor}
+          suggestions={suggestions}
+          onSelect={handleSelectSuggestion}
+          onAccept={handleAcceptSuggestion}
+          onDismiss={handleDismissSuggestion}
+          onCollapse={() => setIsSidebarCollapsed(true)}
+        />
+      )}
     </div>
   )
 }
