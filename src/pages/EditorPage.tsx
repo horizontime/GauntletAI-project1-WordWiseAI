@@ -418,6 +418,8 @@ export function EditorPage() {
           const filtered = detected.filter(
             (sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)),
           )
+          // Persist current grammar suggestions for later merges (e.g., when accepting/dismissing)
+          grammarSuggestionsRef.current = filtered
           setSuggestions(filtered)
 
           // Send to underline plugin
