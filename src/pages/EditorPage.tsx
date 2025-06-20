@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { useEditor, EditorContent } from "@tiptap/react"
+import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import CharacterCount from "@tiptap/extension-character-count"
 import Placeholder from "@tiptap/extension-placeholder"
@@ -69,6 +69,55 @@ export function EditorPage() {
     setSuggestions(merged)
   }, [])
 
+  /* ------------------------------------------------------------
+   *  Grammar check + underline refresh helpers
+   * -----------------------------------------------------------*/
+
+  // Stores the debounce timer handle between keystrokes.
+  const checkTimerRef = useRef<number | null>(null)
+
+  /**
+   * Perform grammar/spelling analysis and refresh the red underlines.
+   *
+   * Pass the current plain-text content and the editor instance that should
+   * receive the underline decorations.  The check is debounced when invoked
+   * continuously while typing, but will run instantly when called after a
+   * suggestion is accepted or dismissed (set `immediate` to true).
+   */
+  const runSuggestionCheck = (
+    plain: string,
+    ed: Editor | null,
+    immediate = false,
+  ) => {
+    const perform = () => {
+      const detected = checkText(plain)
+      const filtered = detected.filter(
+        (sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)),
+      )
+
+      grammarSuggestionsRef.current = filtered
+      setSuggestions(filtered)
+
+      if (ed && ed.view) {
+        const tr = ed.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+          suggestions: filtered,
+        })
+        ed.view.dispatch(tr)
+      }
+    }
+
+    if (immediate) {
+      perform()
+      return
+    }
+
+    // Debounce when called rapidly (typing) --------------------------------
+    if (checkTimerRef.current) {
+      window.clearTimeout(checkTimerRef.current)
+    }
+    checkTimerRef.current = window.setTimeout(perform, 600)
+  }
+
   const [plainText, setPlainText] = useState("")
 
   const editor = useEditor({
@@ -109,7 +158,7 @@ export function EditorPage() {
       setHasUnsavedChanges(true)
 
       const plainText = editor.getText()
-      runSuggestionCheck(plainText)
+      runSuggestionCheck(plainText, editor)
     },
   })
 
@@ -249,10 +298,19 @@ export function EditorPage() {
     [editor],
   )
 
+  // Remove a suggestion from caches and refresh both the sidebar and the underline marks.
   const removeSuggestionById = (id: string) => {
     grammarSuggestionsRef.current = grammarSuggestionsRef.current.filter((sg) => sg.id !== id)
     aiSuggestionsRef.current = aiSuggestionsRef.current.filter((sg) => sg.id !== id)
     refreshSuggestions()
+
+    // Immediately update the underline extension to reflect the change.
+    if (editor && editor.view) {
+      const tr = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+        suggestions: grammarSuggestionsRef.current,
+      })
+      editor.view.dispatch(tr)
+    }
   }
 
   /** Accept a suggestion – replace the offending text with the proposed fix */
@@ -270,9 +328,7 @@ export function EditorPage() {
         original = delMatch[1]
         newReplacement = strongMatch[1]
       } else if (s.title === "Spelling") {
-        // For spelling suggestions, we received replacement candidate.
         if (!replacement) {
-          // No replacement selected; default to first candidate if present
           if (s.candidates && s.candidates.length > 0) {
             replacement = s.candidates[0]
           } else {
@@ -280,13 +336,11 @@ export function EditorPage() {
           }
         }
 
-        // Extract the misspelled word from the excerpt (quoted word)
         const match = s.excerpt.match(/"\s*(.+?)\s*"/)
         if (!match) return
         original = match[1]
         newReplacement = replacement
       } else if (s.title === "Capitalisation") {
-        // Capitalisation fix, similar to sentence start but user picks replacement
         if (!replacement) {
           if (s.candidates && s.candidates.length > 0) {
             replacement = s.candidates[0]
@@ -300,17 +354,14 @@ export function EditorPage() {
         original = delMatch[1]
         newReplacement = replacement
       } else if (s.title === "Punctuation") {
-        // Append the chosen punctuation at the end of the document.
         if (!replacement) {
           replacement = s.candidates && s.candidates.length > 0 ? s.candidates[0] : "."
         }
 
-        // Insert punctuation at end using editor chain.
         editor.chain().focus("end").insertContent(replacement).run()
         removeSuggestionById(s.id)
         return
       } else {
-        // Unsupported suggestion type for auto accept
         return
       }
 
@@ -325,13 +376,19 @@ export function EditorPage() {
       const newHtml = html.replace(original, newReplacement)
       editor.commands.setContent(newHtml)
       removeSuggestionById(s.id)
+
+      // No need for an immediate full re-scan here – the editor's own onUpdate
+      // handler will queue a debounced grammar re-check, and we have already
+      // removed the specific suggestion + underline via removeSuggestionById.
     },
+    // runSuggestionCheck is stable; deliberately excluded
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [editor, removeSuggestionById],
   )
 
+  /** Dismiss a suggestion and refresh underline */
   const handleDismissSuggestion = useCallback(
     (s: Suggestion) => {
-      // Remember that the user dismissed this suggestion so we don't show it again.
       const key = getSuggestionKey(s)
       setDismissedSuggestionKeys((prev) => {
         const next = new Set(prev)
@@ -341,15 +398,13 @@ export function EditorPage() {
       })
 
       removeSuggestionById(s.id)
+
+      // We already updated the suggestion list + underline; allow the
+      // background debounce in onUpdate (or future typing) to run a full scan.
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [removeSuggestionById],
   )
-
-  // Reset dismissed suggestions when a different document is loaded.
-  useEffect(() => {
-    setDismissedSuggestionKeys(new Set())
-    dismissedSuggestionKeysRef.current = new Set()
-  }, [currentDocument?.id])
 
   /* ------------------------------------------------------------------
    * AI suggestion generation (debounced)
@@ -361,20 +416,16 @@ export function EditorPage() {
       return
     }
 
-    // Debounce API calls – only fire when the user pauses typing for 1.5s
     const timeout = window.setTimeout(async () => {
       try {
         const categories: AICategory[] = ["Clarity", "Engagement", "Delivery"]
-        const results = await Promise.all(
-          categories.map((cat) => getAISuggestions(plainText, cat)),
-        )
-        const flattened = results.flat()
-        aiSuggestionsRef.current = flattened
+        const results = await Promise.all(categories.map((cat) => getAISuggestions(plainText, cat)))
+        aiSuggestionsRef.current = results.flat()
         refreshSuggestions()
       } catch (err) {
         console.error("[AI Suggestions]", err)
       }
-    }, 1500) // 1.5 s idle period before calling OpenAI
+    }, 1500)
 
     return () => window.clearTimeout(timeout)
   }, [plainText, refreshSuggestions])
@@ -398,42 +449,6 @@ export function EditorPage() {
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [])
-
-  // Debounce timer reference for expensive suggestion checks
-  const checkTimerRef = useRef<number | null>(null)
-
-  // Helper to execute the heavy text check asynchronously
-  const runSuggestionCheck = useCallback(
-    (plain: string) => {
-      // Clear any pending timer
-      if (checkTimerRef.current) {
-        window.clearTimeout(checkTimerRef.current)
-      }
-
-      // Debounce 600 ms after the last keystroke
-      checkTimerRef.current = window.setTimeout(() => {
-        // Yield back to the event loop first to avoid blocking the input handler
-        setTimeout(() => {
-          const detected = checkText(plain)
-          const filtered = detected.filter(
-            (sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)),
-          )
-          // Persist current grammar suggestions for later merges (e.g., when accepting/dismissing)
-          grammarSuggestionsRef.current = filtered
-          setSuggestions(filtered)
-
-          // Send to underline plugin
-          if (editor && editor.view) {
-            const tr = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
-              suggestions: filtered,
-            })
-            editor.view.dispatch(tr)
-          }
-        }, 0)
-      }, 600)
-    },
-    [editor],
-  )
 
   if (loading) {
     return (
