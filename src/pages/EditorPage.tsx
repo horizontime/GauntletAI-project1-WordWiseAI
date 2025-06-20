@@ -9,6 +9,7 @@ import Placeholder from "@tiptap/extension-placeholder"
 import Link from "@tiptap/extension-link"
 import { CorrectnessUnderline, correctnessUnderlineKey } from "../extensions/CorrectnessUnderline"
 import { ClarityUnderline, clarityUnderlineKey } from "../extensions/ClarityUnderline"
+import { EngagementUnderline, engagementUnderlineKey } from "../extensions/EngagementUnderline"
 import { useAuthStore } from "../stores/authStore"
 import { useDocumentStore } from "../stores/documentStore"
 import { useVersionStore } from "../stores/versionStore"
@@ -72,6 +73,13 @@ export function EditorPage() {
   // Suggestion management
   // ------------------------------------------------------------
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+
+  // Loading state for AI suggestions
+  const [clarityLoading, setClarityLoading] = useState(false)
+  const [engagementLoading, setEngagementLoading] = useState(false)
+
+  // Track active sidebar category
+  const [activeSidebarCategory, setActiveSidebarCategory] = useState<"Correctness" | "Clarity" | "Engagement" | "Delivery">("Correctness")
 
   // Keep raw groups separate so we can refresh/merge efficiently.
   const grammarSuggestionsRef = useRef<Suggestion[]>([])
@@ -164,6 +172,7 @@ export function EditorPage() {
       }),
       CorrectnessUnderline,
       ClarityUnderline,
+      EngagementUnderline,
     ],
     content: "<p></p>",
     editorProps: {
@@ -337,9 +346,14 @@ export function EditorPage() {
       editor.view.dispatch(tr1)
 
       const tr2 = editor.view.state.tr.setMeta(clarityUnderlineKey as any, {
-        suggestions: aiSuggestionsRef.current,
+        suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Clarity"),
       })
       editor.view.dispatch(tr2)
+
+      const tr3 = editor.view.state.tr.setMeta(engagementUnderlineKey as any, {
+        suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Engagement"),
+      })
+      editor.view.dispatch(tr3)
     }
   }
 
@@ -391,7 +405,7 @@ export function EditorPage() {
         editor.chain().focus("end").insertContent(replacement).run()
         removeSuggestionById(s.id)
         return
-      } else if (s.category === "Clarity") {
+      } else if (s.category === "Clarity" || s.category === "Engagement") {
         const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
         const strongMatch = s.excerpt.match(/<strong>(.*?)<\/strong>/i)
         if (!delMatch || !strongMatch) return
@@ -472,6 +486,8 @@ export function EditorPage() {
   const runClarityAnalysis = useCallback(
     async (plain: string, ed: Editor | null) => {
       if (!openaiApiKey || !plain.trim()) return
+
+      setClarityLoading(true)
 
       try {
         const prompt = `Revise the following between the textbox tags. Select the three sentences (Or one or two if there are less than three) that could use the most revision for clarity. Rewrite those three sentences for conciseness and clarity while keeping original meaning. Return an array with at most three sentences.<textbox>${plain}</textbox>`
@@ -559,6 +575,98 @@ export function EditorPage() {
         }
       } catch (err) {
         console.error("Error generating clarity suggestions", err)
+      } finally {
+        setClarityLoading(false)
+      }
+    },
+    [openaiApiKey, refreshSuggestions],
+  )
+
+  /* ------------------------------------------------------------------
+   * AI – Engagement analysis
+   * ----------------------------------------------------------------*/
+
+  const runEngagementAnalysis = useCallback(
+    async (plain: string, ed: Editor | null) => {
+      if (!openaiApiKey || !plain.trim()) return
+      setEngagementLoading(true)
+
+      try {
+        const prompt = `Revise the following between the textbox tags. Select the three sentences (Or one or two if there are less than three) that could use the most revision for engagement. Rewrite those three sentences more vividly to paint a stronger mental image while keeping original meaning. Return an array with at most three sentences.<textbox>${plain}</textbox>`
+
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openaiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.6,
+          }),
+        })
+
+        const data = await res.json()
+        const rawContent: string = data?.choices?.[0]?.message?.content ?? ""
+
+        let rewrittenArr: string[] = []
+        try {
+          rewrittenArr = JSON.parse(rawContent)
+        } catch {
+          const m = rawContent.match(/\[.*\]/s)
+          if (m) {
+            try { rewrittenArr = JSON.parse(m[0]) } catch {}
+          }
+        }
+        if (!Array.isArray(rewrittenArr) || !rewrittenArr.length) return
+
+        const sentences = plain.match(RE_SENTENCE) ?? []
+        const usedIdx = new Set<number>()
+        const engagementSuggestions: Suggestion[] = []
+        let searchStart = 0
+
+        rewrittenArr.forEach((rewritten, i) => {
+          let bestIdx = -1
+          let bestScore = 0
+          sentences.forEach((orig, idx) => {
+            if (usedIdx.has(idx)) return
+            const score = sentenceSimilarity(orig, rewritten)
+            if (score > bestScore) { bestScore = score; bestIdx = idx }
+          })
+          if (bestIdx === -1) return
+          usedIdx.add(bestIdx)
+          const originalSentence = sentences[bestIdx].trim()
+          const charIndex = findSubTextIndex(plain, originalSentence, searchStart)
+          if (charIndex === -1) return
+          searchStart = charIndex + originalSentence.length
+          engagementSuggestions.push({
+            id: `Engagement-${charIndex}-${i}`,
+            category: "Engagement",
+            title: "Engagement",
+            excerpt: `<del>${originalSentence}</del> → <strong>${rewritten.trim()}</strong>`,
+            index: charIndex,
+            length: originalSentence.length,
+          })
+        })
+
+        // Merge with existing AI suggestions excluding previous Engagement ones
+        aiSuggestionsRef.current = [
+          ...aiSuggestionsRef.current.filter((sg) => sg.category !== "Engagement"),
+          ...engagementSuggestions,
+        ]
+        refreshSuggestions()
+
+        if (ed && ed.view) {
+          const tr = ed.view.state.tr.setMeta(engagementUnderlineKey as any, {
+            suggestions: engagementSuggestions,
+          })
+          ed.view.dispatch(tr)
+        }
+      } catch (err) {
+        console.error("Error generating engagement suggestions", err)
+      } finally {
+        setEngagementLoading(false)
       }
     },
     [openaiApiKey, refreshSuggestions],
@@ -573,9 +681,13 @@ export function EditorPage() {
       if (cat === "Clarity") {
         const plain = editor?.getText() || ""
         runClarityAnalysis(plain, editor)
+      } else if (cat === "Engagement") {
+        const plain = editor?.getText() || ""
+        runEngagementAnalysis(plain, editor)
       }
+      setActiveSidebarCategory(cat)
     },
-    [editor, runClarityAnalysis],
+    [editor, runClarityAnalysis, runEngagementAnalysis],
   )
 
   if (loading) {
@@ -826,6 +938,7 @@ export function EditorPage() {
           onAccept={handleAcceptSuggestion}
           onDismiss={handleDismissSuggestion}
           onCollapse={() => setIsSidebarCollapsed(true)}
+          loading={activeSidebarCategory === "Clarity" ? clarityLoading : activeSidebarCategory === "Engagement" ? engagementLoading : false}
           onCategoryChange={handleCategoryChange}
         />
       )}

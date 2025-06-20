@@ -10,6 +10,7 @@ import {
   MoreVertical,
   ChevronsRight,
 } from "lucide-react"
+import { LoadingSpinner } from "./LoadingSpinner"
 
 // Colors for each category
 const categoryConfig = {
@@ -46,6 +47,8 @@ interface Props {
   onCollapse?: () => void
   /** Notify parent when user switches between category tabs */
   onCategoryChange?: (category: Category) => void
+  /** Whether suggestions for the active category are currently loading */
+  loading?: boolean
 }
 
 export function SuggestionSidebar({
@@ -56,6 +59,7 @@ export function SuggestionSidebar({
   onDismiss,
   onCollapse,
   onCategoryChange,
+  loading = false,
 }: Props) {
   const [activeCategory, setActiveCategory] = useState<Category>("Correctness")
 
@@ -207,13 +211,19 @@ export function SuggestionSidebar({
             )
           })}
           {filtered.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-2">
-                <CheckCircle2Icon className="w-8 h-8 mx-auto" />
+            loading ? (
+              <div className="flex justify-center py-12">
+                <LoadingSpinner size="md" />
               </div>
-              <p className="text-sm text-gray-500 font-medium">No suggestions</p>
-              <p className="text-xs text-gray-400 mt-1">Your writing looks great!</p>
-            </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-2">
+                  <CheckCircle2Icon className="w-8 h-8 mx-auto" />
+                </div>
+                <p className="text-sm text-gray-500 font-medium">No suggestions</p>
+                <p className="text-xs text-gray-400 mt-1">Your writing looks great!</p>
+              </div>
+            )
           )}
         </div>
       </div>
