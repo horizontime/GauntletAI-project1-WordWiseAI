@@ -28,7 +28,6 @@ import {
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
-import { getSuggestions as getAISuggestions, type AICategory } from "../lib/openai"
 
 export function EditorPage() {
   const { documentId } = useParams()
@@ -405,30 +404,6 @@ export function EditorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [removeSuggestionById],
   )
-
-  /* ------------------------------------------------------------------
-   * AI suggestion generation (debounced)
-   * ------------------------------------------------------------------*/
-  useEffect(() => {
-    if (!plainText.trim()) {
-      aiSuggestionsRef.current = []
-      refreshSuggestions()
-      return
-    }
-
-    const timeout = window.setTimeout(async () => {
-      try {
-        const categories: AICategory[] = ["Clarity", "Engagement", "Delivery"]
-        const results = await Promise.all(categories.map((cat) => getAISuggestions(plainText, cat)))
-        aiSuggestionsRef.current = results.flat()
-        refreshSuggestions()
-      } catch (err) {
-        console.error("[AI Suggestions]", err)
-      }
-    }, 1500)
-
-    return () => window.clearTimeout(timeout)
-  }, [plainText, refreshSuggestions])
 
   // Sidebar collapse state
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false)
