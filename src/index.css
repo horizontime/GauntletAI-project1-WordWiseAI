@@ -142,7 +142,7 @@
   .tiptap-clarity-underline {
     text-decoration: underline;
     text-decoration-color: #3b82f6; /* blue-500 */
-    text-decoration-style: solid;
+    text-decoration-style: wavy;
     text-decoration-thickness: 2px;
   }
 }

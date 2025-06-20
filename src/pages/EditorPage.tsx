@@ -544,6 +544,7 @@ export function EditorPage() {
             title: "Clarity",
             excerpt: `<del>${originalSentence}</del> → <strong>${rewritten.trim()}</strong>`,
             index: charIndex,
+            length: originalSentence.length,
           })
         })
 

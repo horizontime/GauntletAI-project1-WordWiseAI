@@ -29,6 +29,8 @@ export interface Suggestion {
   candidates?: string[]
   /** Optional 0-based character index for underline mapping */
   index?: number
+  /** Optional length of the segment to underline */
+  length?: number
 }
 
 interface Props {

@@ -42,26 +42,24 @@ export const ClarityUnderline = Extension.create({
     const buildDecos = (doc: any, sel: any, suggestions: CheckerSuggestion[]): DecorationSet => {
       const plain = doc.textContent
 
-      // Avoid underlining the word currently being typed (caret area) as in CorrectnessUnderline
-      let cutOff = plain.length
-      if (sel?.empty) {
-        const caretIdx = posToCharIndex(doc, sel.from)
-        const before = plain.slice(0, caretIdx)
-        const idxSpace = before.lastIndexOf(" ")
-        const idxNl = Math.max(before.lastIndexOf("\n"), before.lastIndexOf("\t"))
-        const lastIdx = Math.max(idxSpace, idxNl)
-        cutOff = lastIdx === -1 ? 0 : lastIdx + 1
-      }
-
       const decos: Decoration[] = []
       suggestions.forEach((s) => {
         if (s.index == null) return
-        if (s.index >= cutOff) return
         const start = s.index
-        // Highlight up to next space or 5 characters minimum as fallback
-        const nextSpace = plain.indexOf(" ", start)
-        let end = nextSpace !== -1 ? nextSpace : start + 5
-        if (end <= start) end = start + 1
+        let end: number
+
+        if (typeof (s as any).length === "number") {
+          end = start + (s as any).length!
+        } else {
+          // Compute until next sentence-ending punctuation (.!?), inclusive
+          const tail = plain.slice(start)
+          const mEnd = tail.match(/[^.!?]*[.!?]/)
+          if (mEnd) {
+            end = start + mEnd[0].length
+          } else {
+            end = start + tail.length
+          }
+        }
 
         const from = charIndexToPos(doc, start)
         const to = charIndexToPos(doc, end)
