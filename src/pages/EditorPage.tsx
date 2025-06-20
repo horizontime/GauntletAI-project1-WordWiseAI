@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
+import { getSuggestions as getAISuggestions, type AICategory } from "../lib/openai"
 
 export function EditorPage() {
   const { documentId } = useParams()
@@ -42,20 +43,32 @@ export function EditorPage() {
   const [isLinkSelectorOpen, setIsLinkSelectorOpen] = useState(false)
   const [linkUrl, setLinkUrl] = useState("")
 
-  // Mock suggestions to demonstrate the sidebar UI
+  // ------------------------------------------------------------
+  // Suggestion management
+  // ------------------------------------------------------------
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
-  /**
-   * Keep track of suggestions that the user explicitly dismissed so they
-   * won't show up again for the current document editing session.
-   * We store a stable "key" derived from the suggestion's semantic content
-   * (title + excerpt) instead of the built-in id because the id contains the
-   * character index which may shift as the user continues typing.
-   */
+  // Keep raw groups separate so we can refresh/merge efficiently.
+  const grammarSuggestionsRef = useRef<Suggestion[]>([])
+  const aiSuggestionsRef = useRef<Suggestion[]>([])
+
+  // Helper to produce a stable key for hashing suggestions.
+  const getSuggestionKey = (s: Suggestion) => `${s.title}-${s.excerpt}`
+
+  // Track suggestions dismissed by the user during the current session so we
+  // can filter them out of subsequent AI/grammar runs.
   const [, setDismissedSuggestionKeys] = useState<Set<string>>(new Set())
   const dismissedSuggestionKeysRef = useRef<Set<string>>(new Set())
 
-  const getSuggestionKey = (s: Suggestion) => `${s.title}-${s.excerpt}`
+  /** Merge grammar + AI suggestions and apply dismissal filter */
+  const refreshSuggestions = useCallback(() => {
+    const merged = [...grammarSuggestionsRef.current, ...aiSuggestionsRef.current].filter(
+      (sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)),
+    )
+    setSuggestions(merged)
+  }, [])
+
+  const [plainText, setPlainText] = useState("")
 
   const editor = useEditor({
     extensions: [
@@ -93,11 +106,12 @@ export function EditorPage() {
       updateCurrentDocumentContent(content)
       setHasUnsavedChanges(true)
 
-      const plainText = editor.getText()
-      const detected = checkText(plainText)
-      // Filter out any suggestions that the user has previously dismissed.
-      const filtered = detected.filter((sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)))
-      setSuggestions(filtered)
+      const text = editor.getText()
+      setPlainText(text)
+
+      const detected = checkText(text)
+      grammarSuggestionsRef.current = detected
+      refreshSuggestions()
     },
   })
 
@@ -238,7 +252,9 @@ export function EditorPage() {
   )
 
   const removeSuggestionById = (id: string) => {
-    setSuggestions((prev) => prev.filter((sg) => sg.id !== id))
+    grammarSuggestionsRef.current = grammarSuggestionsRef.current.filter((sg) => sg.id !== id)
+    aiSuggestionsRef.current = aiSuggestionsRef.current.filter((sg) => sg.id !== id)
+    refreshSuggestions()
   }
 
   /** Accept a suggestion – replace the offending text with the proposed fix */
@@ -336,6 +352,34 @@ export function EditorPage() {
     setDismissedSuggestionKeys(new Set())
     dismissedSuggestionKeysRef.current = new Set()
   }, [currentDocument?.id])
+
+  /* ------------------------------------------------------------------
+   * AI suggestion generation (debounced)
+   * ------------------------------------------------------------------*/
+  useEffect(() => {
+    if (!plainText.trim()) {
+      aiSuggestionsRef.current = []
+      refreshSuggestions()
+      return
+    }
+
+    // Debounce API calls – only fire when the user pauses typing for 1.5s
+    const timeout = window.setTimeout(async () => {
+      try {
+        const categories: AICategory[] = ["Clarity", "Engagement", "Delivery"]
+        const results = await Promise.all(
+          categories.map((cat) => getAISuggestions(plainText, cat)),
+        )
+        const flattened = results.flat()
+        aiSuggestionsRef.current = flattened
+        refreshSuggestions()
+      } catch (err) {
+        console.error("[AI Suggestions]", err)
+      }
+    }, 1500) // 1.5 s idle period before calling OpenAI
+
+    return () => window.clearTimeout(timeout)
+  }, [plainText, refreshSuggestions])
 
   // Sidebar collapse state
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false)

@@ -12,23 +12,26 @@ export interface AISuggestion extends Suggestion {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-// Few-shot prompt templates per category. These can evolve over time but we
-// initialise them here so we have something functional out of the gate.
+// Prompt templates tailored to each improvement category. We keep them short so
+// they fit comfortably within the context window but still provide enough
+// guidance for the assistant.  We explicitly instruct the assistant to return
+// **no more than three** suggestions so that the UI receives exactly the number
+// requested in the PRD.
 const SYSTEM_PROMPTS: Record<AICategory, string> = {
   Clarity:
-    "You are a writing coach helping students rewrite sentences for conciseness and clarity while preserving meaning. Return ONLY valid JSON matching the given schema.",
+    "You are a writing coach who specialises in making prose concise, unambiguous and grammatically sound. Given some STUDENT_TEXT you will propose succinct rewrites that preserve meaning while improving clarity. Return ONLY valid JSON matching the schema and provide **at most 3** suggestions.",
   Engagement:
-    "You are a writing coach helping students make their writing more vivid and engaging with descriptive language. Return ONLY valid JSON matching the given schema.",
+    "You are a writing coach who helps students craft vivid, compelling prose. Given some STUDENT_TEXT suggest rewrites that increase reader interest using descriptive language and storytelling devices. Return ONLY valid JSON matching the schema and provide **at most 3** suggestions.",
   Delivery:
-    "You are a writing coach helping students improve tone, flow, and readability. Return ONLY valid JSON matching the given schema.",
+    "You are a writing coach focused on tone, flow and readability. Given some STUDENT_TEXT offer rewrites that smooth the flow, strengthen transitions and adopt an encouraging academic tone. Return ONLY valid JSON matching the schema and provide **at most 3** suggestions.",
 }
 
 // The JSON schema we expect from the assistant. The assistant MUST respond
 // with an array of objects implementing the Suggestion interface.
-const JSON_SCHEMA_DESCRIPTION = `Return a JSON array where each element has:
+const JSON_SCHEMA_DESCRIPTION = `Return a JSON array (maximum 3 items) where each element has:
   id: string (uuid),
-  title: string (reuse the category name),
-  excerpt: string (HTML using <del> & <strong> to highlight changes),
+  title: string (always set to the category name),
+  excerpt: string (HTML snippet using <del> and <strong> to show before/after),
   category: one of Clarity | Engagement | Delivery,
   candidates?: string[] (optional list of replacement strings)
 No additional keys are allowed.`
@@ -69,6 +72,25 @@ async function callOpenAI(rawText: string, category: AICategory): Promise<string
   return data.choices[0]?.message?.content ?? "[]"
 }
 
+// ---------------------------------------------------------------------------
+// Response sanitation helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * OpenAI frequently wraps JSON answers in markdown code-fences (```json\n ... ```).
+ * This helper removes those fences so the string can be safely parsed.
+ */
+function stripMarkdownFences(raw: string): string {
+  const trimmed = raw.trim()
+  if (trimmed.startsWith("```")) {
+    // Remove leading fence e.g. ```json or ```
+    const withoutStart = trimmed.replace(/^```(?:json)?\s*/i, "")
+    // Remove trailing fence
+    return withoutStart.replace(/\s*```\s*$/i, "").trim()
+  }
+  return trimmed
+}
+
 /**
  * Public helper that calls OpenAI and parses the response into Suggestion
  * objects consumable by the existing UI. Will never throw on JSON parse
@@ -80,11 +102,12 @@ export async function getSuggestions(
 ): Promise<AISuggestion[]> {
   try {
     const raw = await callOpenAI(text, category)
-    const parsed = JSON.parse(raw) as AISuggestion[]
+    const jsonString = stripMarkdownFences(raw)
+    const parsed = JSON.parse(jsonString) as AISuggestion[]
     // Ensure the category is set correctly (the assistant may omit it).
     parsed.forEach((s) => (s.category = category))
-    // Enforce max 5 suggestions as per PRD.
-    return parsed.slice(0, 5)
+    // Enforce max 3 suggestions as per updated requirements.
+    return parsed.slice(0, 3)
   } catch (err) {
     console.error("[OpenAIService]", err)
     return []
