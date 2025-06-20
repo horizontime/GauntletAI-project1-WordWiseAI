@@ -51,9 +51,9 @@ export function SuggestionSidebar({ editor: _editor, suggestions, onSelect, onAc
   return (
     <aside className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl flex flex-col z-20">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between px-6 py-5 border-gray-200 bg-white">
         <h2 className="text-base font-semibold text-gray-900">Review suggestions</h2>
-        <span className="text-xs font-bold text-gray-700 bg-gray-200 rounded-full px-3 py-1">{counter}</span>
+        <span className="text-sm font-bold text-gray-700 bg-gray-200 rounded-full px-3 py-1">{counter}</span>
       </div>
 
       {/* Tabs */}
