@@ -9,6 +9,7 @@ import { VersionHistoryPage } from './pages/VersionHistoryPage'
 import { TrashPage } from './pages/TrashPage'
 import { AccountPage } from './pages/AccountPage'
 import { Toaster } from 'react-hot-toast'
+import { LandingPage } from './pages/LandingPage'
 
 function App() {
   const { user, loading, initialize } = useAuthStore()
@@ -54,7 +55,7 @@ function App() {
         />
         <Route 
           path="/" 
-          element={<Navigate to={user ? "/dashboard" : "/auth"} replace />} 
+          element={<LandingPage />} 
         />
       </Routes>
       {/* Customized global toaster styles */}
