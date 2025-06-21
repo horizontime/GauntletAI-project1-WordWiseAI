@@ -378,17 +378,62 @@ export function EditorPage() {
         return
       }
 
+      // Difference in length so we can shift later indices of remaining AI suggestions
+      const lengthDelta = newReplacement.length - original.length
+      const acceptedCharIndex = typeof s.index === "number" ? s.index : null
+
       const newHtml = html.replace(original, newReplacement)
       editor.commands.setContent(newHtml)
       removeSuggestionById(s.id)
 
-      // No need for an immediate full re-scan here – the editor's own onUpdate
-      // handler will queue a debounced grammar re-check, and we have already
-      // removed the specific suggestion + underline via removeSuggestionById.
+      /* --------------------------------------------------------------
+       *  Recalculate decorations & suggestion indices immediately
+       * ------------------------------------------------------------*/
+
+      // 1) Shift the stored indices of any remaining AI suggestions that
+      //    appear after the position we just modified so their underlines
+      //    stay aligned with the moved text.
+      if (acceptedCharIndex !== null && lengthDelta !== 0) {
+        aiSuggestionsRef.current = aiSuggestionsRef.current.map((sg) => {
+          if (sg.index != null && sg.index > acceptedCharIndex) {
+            return { ...sg, index: sg.index + lengthDelta }
+          }
+          return sg
+        })
+      }
+
+      // 2) Immediately run the grammar/spelling checker again so the red
+      //    underlines are rebuilt based on the new document contents.
+      const plainAfterEdit = editor.getText()
+      runSuggestionCheck(plainAfterEdit, editor, true)
+
+      // 3) Refresh the merged suggestion list (grammar + AI).
+      refreshSuggestions()
+
+      // 4) Update the AI underline decorations with their (potentially) new
+      //    indices.
+      if (editor && editor.view) {
+        const view = editor.view
+
+        const tr1 = view.state.tr.setMeta(clarityUnderlineKey as any, {
+          suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Clarity"),
+        })
+        view.dispatch(tr1)
+
+        const tr2 = view.state.tr.setMeta(engagementUnderlineKey as any, {
+          suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Engagement"),
+        })
+        view.dispatch(tr2)
+
+        const tr3 = view.state.tr.setMeta(deliveryUnderlineKey as any, {
+          suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Delivery"),
+        })
+        view.dispatch(tr3)
+      }
     },
     // runSuggestionCheck is stable; deliberately excluded
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editor, removeSuggestionById],
+    [editor, removeSuggestionById, refreshSuggestions],
   )
 
   /** Dismiss a suggestion and refresh underline */
