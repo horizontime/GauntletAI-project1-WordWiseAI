@@ -88,6 +88,19 @@ export function SuggestionSidebar({
     onDismiss?.(s)
   }
 
+  // Bulk actions – only used for the Spellcheck (Correctness) tab
+  const handleAcceptAll = () => {
+    // Apply only to the currently filtered (Correctness) suggestions
+    filtered.forEach((s) => {
+      const replacement = s.candidates && s.candidates.length > 0 ? s.candidates[0] : undefined
+      handleAccept(s, replacement)
+    })
+  }
+
+  const handleDismissAll = () => {
+    filtered.forEach((s) => handleDismiss(s))
+  }
+
   return (
     <aside className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl flex flex-col z-20">
       {/* Header with collapse button */}
@@ -136,6 +149,23 @@ export function SuggestionSidebar({
       {/* Suggestions list */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-3">
+          {/* Bulk action buttons for Spellcheck suggestions */}
+          {activeCategory === "Correctness" && filtered.length > 0 && (
+            <div className="flex justify-between gap-2 mb-2 mr-8 ml-8">
+              <button
+                onClick={handleAcceptAll}
+                className="px-3 py-1.5 rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-150"
+              >
+                Accept All
+              </button>
+              <button
+                onClick={handleDismissAll}
+                className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-300 transition-colors duration-150 bg-gray-100"
+              >
+                Dismiss All
+              </button>
+            </div>
+          )}
           {filtered.map((s) => {
             const config = categoryConfig[s.category]
             const isHighlighted = highlightedSuggestionIds.has(getHighlightKey(s))
