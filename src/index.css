@@ -142,21 +142,21 @@
   .tiptap-clarity-underline {
     text-decoration: underline;
     text-decoration-color: #3b82f6; /* blue-500 */
-    text-decoration-style: wavy;
+    text-decoration-style: solid;
     text-decoration-thickness: 2px;
   }
 
   .tiptap-engagement-underline {
     text-decoration: underline;
     text-decoration-color: #10b981; /* green-500 */
-    text-decoration-style: wavy;
+    text-decoration-style: solid;
     text-decoration-thickness: 2px;
   }
 
   .tiptap-delivery-underline {
     text-decoration: underline;
     text-decoration-color: #8b5cf6; /* purple-500 */
-    text-decoration-style: wavy;
+    text-decoration-style: solid;
     text-decoration-thickness: 2px;
   }
 }
