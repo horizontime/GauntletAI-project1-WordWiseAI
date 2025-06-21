@@ -98,16 +98,9 @@ export function GenerateTextModal({ isOpen, onClose, onInsert, currentText }: Ge
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} >
+    <Modal isOpen={isOpen} onClose={onClose} title="✨ Idea Helper ✨">
       <div className="space-y-4 md:flex md:space-x-6">
         <div className="flex-1 space-y-4">
-          {/* Title with centered, fun font */}
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-gray-800 font-['Comic_Sans_MS'] tracking-wide">
-              ✨ Idea Helper ✨
-            </h2>
-          </div>
-
           {/* Topic */}
           <div>
             <label className="block text-sm font-medium">Topic / Prompt</label>

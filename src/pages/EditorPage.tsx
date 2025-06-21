@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback, useRef, ReactNode } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
@@ -55,6 +55,41 @@ function sentenceSimilarity(a: string, b: string): number {
     if (setB.has(w)) intersect += 1
   })
   return intersect / Math.max(setA.size, setB.size)
+}
+
+// ------------------------------------------------------------
+// TooltipButton – reusable button with hover tooltip
+// ------------------------------------------------------------
+
+interface TooltipButtonProps {
+  onClick: () => void
+  active?: boolean
+  tooltip: string
+  children: ReactNode
+  disabled?: boolean
+  className?: string
+}
+
+const TooltipButton = ({ onClick, active = false, tooltip, children, disabled, className = "" }: TooltipButtonProps) => {
+  return (
+    <div className="relative group">
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        className={`p-2.5 rounded-lg transition-colors duration-150 ${
+          active ? "bg-blue-100 text-blue-700 shadow-sm" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        } ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+      >
+        {children}
+      </button>
+      {/* Tooltip */}
+      <span
+        className="absolute left-1/2 -translate-x-1/2 -top-9 bg-gray-700 text-white text-xs font-medium px-2 py-1 rounded opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-[1000ms] whitespace-nowrap pointer-events-none z-10"
+      >
+        {tooltip}
+      </span>
+    </div>
+  )
 }
 
 export function EditorPage() {
@@ -1172,96 +1207,75 @@ export function EditorPage() {
       <div className="border-b border-gray-200 bg-white">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <div className="flex items-center space-x-1 py-3">
-            <button
+            <TooltipButton
               onClick={() => editor?.chain().focus().toggleBold().run()}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("bold")
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              active={!!editor?.isActive("bold")}
+              tooltip="Bold"
             >
               <BoldIcon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
 
-            <button
+            <TooltipButton
               onClick={() => editor?.chain().focus().toggleItalic().run()}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("italic")
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              active={!!editor?.isActive("italic")}
+              tooltip="Italic"
             >
               <ItalicIcon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
 
             <div className="w-px h-6 bg-gray-300 mx-3"></div>
 
-            <button
+            <TooltipButton
               onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("heading", { level: 1 })
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              active={!!editor?.isActive("heading", { level: 1 })}
+              tooltip="Heading 1"
             >
               <Heading1Icon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
 
-            <button
+            <TooltipButton
               onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("heading", { level: 2 })
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              active={!!editor?.isActive("heading", { level: 2 })}
+              tooltip="Heading 2"
             >
               <Heading2Icon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
 
-            <button
+            <TooltipButton
               onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("heading", { level: 3 })
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              active={!!editor?.isActive("heading", { level: 3 })}
+              tooltip="Heading 3"
             >
               <Heading3Icon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
 
             <div className="w-px h-6 bg-gray-300 mx-3"></div>
 
             {/* Bullet List */}
-            <button
+            <TooltipButton
               onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("bulletList")
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              active={!!editor?.isActive("bulletList")}
+              tooltip="Bullet list"
             >
               <ListIcon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
 
             {/* Numbered List */}
-            <button
+            <TooltipButton
               onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
-                editor?.isActive("orderedList")
-                  ? "bg-blue-100 text-blue-700 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              active={!!editor?.isActive("orderedList")}
+              tooltip="Numbered list"
             >
               <ListOrderedIcon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
 
             {/* Generate Text */}
-            <button
+            <TooltipButton
               onClick={() => setIsGenerateOpen(true)}
-              className="p-2.5 rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              tooltip="AI writing assistant"
             >
               <SparklesIcon className="w-4 h-4" />
-            </button>
+            </TooltipButton>
           </div>
         </div>
       </div>

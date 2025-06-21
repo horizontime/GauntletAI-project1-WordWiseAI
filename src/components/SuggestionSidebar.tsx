@@ -44,6 +44,14 @@ const getHighlightKey = (s: Suggestion) => {
   return `${s.category}-${s.excerpt}`
 }
 
+// Tooltip texts for each category
+const tooltipText: Record<Category, string> = {
+  Correctness: "Checking for basic spelling.",
+  Clarity: "Writing for Conciseness and Clarity.",
+  Engagement: "Vivid Rewriting that Paints a Stronger Mental Image.",
+  Delivery: "Writing to improve tone, flow, and readability so ideas land effectively.",
+}
+
 interface Props {
   editor?: Editor | null
   suggestions: Suggestion[]
@@ -123,25 +131,30 @@ export function SuggestionSidebar({
           const Icon = config.icon
           const isActive = key === activeCategory
           return (
-            <button
-              key={key}
-              onClick={() => {
-                setActiveCategory(key)
-                onCategoryChange?.(key)
-              }}
-              className={`flex-1 flex flex-col items-center py-3 px-2 hover:bg-gray-50 transition-colors duration-150 ${
-                isActive ? `border-b-2 ${config.border} bg-gray-50` : "border-b-2 border-transparent"
-              }`}
-            >
-              <Icon className={`w-4 h-4 mb-1.5 ${config.color}`} />
-              <span
-                className={`text-[10px] font-medium uppercase tracking-wide ${
-                  isActive ? "text-gray-900" : "text-gray-600"
+            <div key={key} className="relative flex-1 group">
+              <button
+                onClick={() => {
+                  setActiveCategory(key)
+                  onCategoryChange?.(key)
+                }}
+                className={`w-full flex flex-col items-center py-3 px-2 hover:bg-gray-50 transition-colors duration-150 ${
+                  isActive ? `border-b-2 ${config.border} bg-gray-50` : "border-b-2 border-transparent"
                 }`}
               >
-                {key === "Correctness" ? "SPELLCHECK" : key}
+                <Icon className={`w-4 h-4 mb-1.5 ${config.color}`} />
+                <span
+                  className={`text-[10px] font-medium uppercase tracking-wide ${
+                    isActive ? "text-gray-900" : "text-gray-600"
+                  }`}
+                >
+                  {key === "Correctness" ? "SPELLCHECK" : key}
+                </span>
+              </button>
+              {/* Tooltip */}
+              <span className={`${key === 'Delivery' ? 'ml-[-60px]' : ''} absolute left-1/2 -translate-x-1/2 -top-12 bg-gray-700 text-white text-xs font-medium px-2 py-1 rounded opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-[1000ms] w-48 text-center whitespace-normal break-words pointer-events-none z-10`}>
+                {tooltipText[key]}
               </span>
-            </button>
+            </div>
           )
         })}
       </div>
