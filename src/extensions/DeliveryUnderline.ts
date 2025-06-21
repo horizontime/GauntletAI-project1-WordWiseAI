@@ -3,6 +3,10 @@ import { Plugin, PluginKey } from "prosemirror-state"
 import { Decoration, DecorationSet } from "prosemirror-view"
 import { Suggestion as CheckerSuggestion } from "../components/SuggestionSidebar"
 
+interface ExtendedSuggestion extends CheckerSuggestion {
+  highlighted?: boolean
+}
+
 /**
  * Extract plain text from the document in a way that matches editor.getText()
  * This ensures consistency between how the editor and plugins see the text.
@@ -118,31 +122,35 @@ export const deliveryUnderlineKey = new PluginKey("deliveryUnderline")
 
 export const DeliveryUnderline = Extension.create({
   name: "deliveryUnderline",
+
   addProseMirrorPlugins() {
-    const buildDecos = (doc: any, _sel: any, suggestions: CheckerSuggestion[]): DecorationSet => {
+    /** Build a DecorationSet from the given suggestions array. */
+    const buildDecos = (doc: any, _sel: any, suggestions: ExtendedSuggestion[]): DecorationSet => {
       const decos: Decoration[] = []
       suggestions.forEach((s) => {
-        if (s.category !== "Delivery" || s.index == null) return
-        const start = s.index
-        const length = (s as any).length ?? 1
-        const end = start + length
-        const from = charIndexToPos(doc, start)
-        const to = charIndexToPos(doc, end)
+        if (s.index === undefined || s.length === undefined) return
+
+        const from = charIndexToPos(doc, s.index)
+        const to = charIndexToPos(doc, s.index + s.length)
         if (from !== null && to !== null && to > from) {
-          // Extend the decoration to cover the entire word
           const extended = extendDecorationToWord(doc, from, to)
-          decos.push(Decoration.inline(extended.from, extended.to, { class: "tiptap-delivery-underline" }))
+          const className = s.highlighted 
+            ? "tiptap-delivery-underline tiptap-highlighted" 
+            : "tiptap-delivery-underline"
+          decos.push(Decoration.inline(extended.from, extended.to, { class: className }))
         }
       })
+
       return DecorationSet.create(doc, decos)
     }
+
     return [
       new Plugin({
         key: deliveryUnderlineKey,
         state: {
           init: () => DecorationSet.empty,
           apply(tr, old) {
-            const meta = tr.getMeta(deliveryUnderlineKey) as { suggestions?: CheckerSuggestion[] } | undefined
+            const meta = tr.getMeta(deliveryUnderlineKey) as { suggestions?: ExtendedSuggestion[] } | undefined
             if (meta && meta.suggestions) {
               return buildDecos(tr.doc, tr.selection, meta.suggestions)
             }

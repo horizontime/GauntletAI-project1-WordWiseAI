@@ -3,6 +3,10 @@ import { Plugin, PluginKey } from "prosemirror-state"
 import { Decoration, DecorationSet } from "prosemirror-view"
 import { Suggestion as CheckerSuggestion } from "../lib/textChecker"
 
+interface ExtendedSuggestion extends CheckerSuggestion {
+  highlighted?: boolean
+}
+
 /**
  * Extract plain text from the document in a way that matches editor.getText()
  * This ensures consistency between how the editor and plugins see the text.
@@ -154,7 +158,7 @@ export const CorrectnessUnderline = Extension.create({
 
   addProseMirrorPlugins() {
     /** Build a DecorationSet from the given suggestions array. */
-    const buildDecos = (doc: any, sel: any, suggestions: CheckerSuggestion[]): DecorationSet => {
+    const buildDecos = (doc: any, sel: any, suggestions: ExtendedSuggestion[]): DecorationSet => {
       const plain = getPlainText(doc)
 
       // Exclude the word currently being typed (caret position)
@@ -183,7 +187,10 @@ export const CorrectnessUnderline = Extension.create({
         if (from !== null && to !== null && to > from) {
           // Extend the decoration to cover the entire word
           const extended = extendDecorationToWord(doc, from, to)
-          decos.push(Decoration.inline(extended.from, extended.to, { class: "tiptap-correctness-underline" }))
+          const className = s.highlighted 
+            ? "tiptap-correctness-underline tiptap-highlighted" 
+            : "tiptap-correctness-underline"
+          decos.push(Decoration.inline(extended.from, extended.to, { class: className }))
         }
       })
 
@@ -196,7 +203,7 @@ export const CorrectnessUnderline = Extension.create({
         state: {
           init: () => DecorationSet.empty,
           apply(tr, old) {
-            const meta = tr.getMeta(correctnessUnderlineKey) as { suggestions?: CheckerSuggestion[] } | undefined
+            const meta = tr.getMeta(correctnessUnderlineKey) as { suggestions?: ExtendedSuggestion[] } | undefined
             if (meta && meta.suggestions) {
               return buildDecos(tr.doc, tr.selection, meta.suggestions)
             }

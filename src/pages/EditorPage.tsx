@@ -71,6 +71,9 @@ export function EditorPage() {
   // Suggestion management
   // ------------------------------------------------------------
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  
+  // Track which suggestions are currently highlighted using stable keys
+  const [highlightedSuggestionKeys, setHighlightedSuggestionKeys] = useState<Set<string>>(new Set())
 
   // Loading state for AI suggestions
   const [clarityLoading, setClarityLoading] = useState(false)
@@ -86,6 +89,16 @@ export function EditorPage() {
 
   // Helper to produce a stable key for hashing suggestions.
   const getSuggestionKey = (s: Suggestion) => `${s.title}-${s.excerpt}`
+  
+  // Helper to produce a stable key for tracking highlights
+  const getHighlightKey = (s: Suggestion) => {
+    // For spell check suggestions, use index and title as a stable identifier
+    if (s.category === "Correctness" && s.index !== undefined) {
+      return `${s.category}-${s.index}-${s.title}`
+    }
+    // For AI suggestions, use the excerpt as it's unique
+    return `${s.category}-${s.excerpt}`
+  }
 
   // Track suggestions dismissed by the user during the current session so we
   // can filter them out of subsequent AI/grammar runs.
@@ -94,11 +107,14 @@ export function EditorPage() {
 
   /** Merge grammar + AI suggestions and apply dismissal filter */
   const refreshSuggestions = useCallback(() => {
-    const merged = [...grammarSuggestionsRef.current, ...aiSuggestionsRef.current].filter(
-      (sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)),
-    )
+    const merged = [...grammarSuggestionsRef.current, ...aiSuggestionsRef.current]
+      .filter((sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)))
+      .map(sg => ({
+        ...sg,
+        highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+      }))
     setSuggestions(merged)
-  }, [])
+  }, [highlightedSuggestionKeys])
 
   /* ------------------------------------------------------------
    *  Grammar check + underline refresh helpers
@@ -115,7 +131,7 @@ export function EditorPage() {
    * continuously while typing, but will run instantly when called after a
    * suggestion is accepted or dismissed (set `immediate` to true).
    */
-  const runSuggestionCheck = (
+  const runSuggestionCheck = useCallback((
     plain: string,
     ed: Editor | null,
     immediate = false,
@@ -126,12 +142,19 @@ export function EditorPage() {
         (sg) => !dismissedSuggestionKeysRef.current.has(getSuggestionKey(sg)),
       )
 
-      grammarSuggestionsRef.current = filtered
-      setSuggestions(filtered)
+      // Preserve highlight state from previous suggestions
+      const highlightedKeys = highlightedSuggestionKeys
+      const suggestionsWithHighlight = filtered.map(sg => ({
+        ...sg,
+        highlighted: highlightedKeys.has(getHighlightKey(sg))
+      }))
+
+      grammarSuggestionsRef.current = suggestionsWithHighlight
+      setSuggestions([...suggestionsWithHighlight, ...aiSuggestionsRef.current])
 
       if (ed && ed.view) {
         const tr = ed.view.state.tr.setMeta(correctnessUnderlineKey as any, {
-          suggestions: filtered,
+          suggestions: suggestionsWithHighlight,
         })
         ed.view.dispatch(tr)
       }
@@ -147,7 +170,7 @@ export function EditorPage() {
       window.clearTimeout(checkTimerRef.current)
     }
     checkTimerRef.current = window.setTimeout(perform, 600)
-  }
+  }, [highlightedSuggestionKeys, aiSuggestionsRef, refreshSuggestions, getHighlightKey])
 
   const editor = useEditor({
     extensions: [
@@ -252,31 +275,119 @@ export function EditorPage() {
   }
 
   /**
-   * Handle when the user clicks on a card just to navigate.
-   * For now we simply focus the editor; optionally could scroll to the location.
+   * Handle when the user clicks on a card to toggle highlighting.
    */
   const handleSelectSuggestion = useCallback(
     (s: Suggestion) => {
       if (!editor) return
 
-      // Try to locate the original text inside the document and move the selection.
-      const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
-      const original = delMatch ? delMatch[1] : null
-      if (!original) {
-        editor.commands.focus()
-        return
-      }
+      // Toggle highlight state
+      setHighlightedSuggestionKeys((prev: Set<string>) => {
+        const newSet = new Set(prev)
+        const key = getHighlightKey(s)
+        
+        if (newSet.has(key)) {
+          newSet.delete(key)
+        } else {
+          newSet.add(key)
+        }
+        
+        // Update all underline extensions with the highlighted suggestions
+        if (editor && editor.view) {
+          // For grammar/correctness suggestions
+          const correctnessSuggestions = grammarSuggestionsRef.current.map(sg => ({
+            ...sg,
+            highlighted: newSet.has(getHighlightKey(sg))
+          }))
+          
+          const tr1 = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+            suggestions: correctnessSuggestions,
+          })
+          editor.view.dispatch(tr1)
 
-      const html = editor.getHTML()
-      const idx = html.indexOf(original)
-      if (idx === -1) {
-        editor.commands.focus()
-        return
-      }
+          // For AI suggestions (Clarity, Engagement, Delivery)
+          const aiSuggestionsWithHighlight = aiSuggestionsRef.current.map(sg => ({
+            ...sg,
+            highlighted: newSet.has(getHighlightKey(sg))
+          }))
 
-      // Roughly estimate the position by counting characters. This is an approximation but
-      // good enough for basic navigation without deep ProseMirror node mapping.
-      editor.commands.focus("end")
+          const tr2 = editor.view.state.tr.setMeta(clarityUnderlineKey as any, {
+            suggestions: aiSuggestionsWithHighlight.filter((sg) => sg.category === "Clarity"),
+          })
+          editor.view.dispatch(tr2)
+
+          const tr3 = editor.view.state.tr.setMeta(engagementUnderlineKey as any, {
+            suggestions: aiSuggestionsWithHighlight.filter((sg) => sg.category === "Engagement"),
+          })
+          editor.view.dispatch(tr3)
+
+          const tr4 = editor.view.state.tr.setMeta(deliveryUnderlineKey as any, {
+            suggestions: aiSuggestionsWithHighlight.filter((sg) => sg.category === "Delivery"),
+          })
+          editor.view.dispatch(tr4)
+        }
+        
+        return newSet
+      })
+
+      // If the suggestion has position info, scroll to it
+      if (s.index !== undefined && s.length !== undefined) {
+        // This is an AI suggestion with both index and length
+        // Use the TipTap API to find the position
+        const { state } = editor
+        const { doc } = state
+        let charCount = 0
+        let from = -1
+        
+        // Convert character index to document position
+        doc.descendants((node: any, pos: any) => {
+          if (from !== -1) return false // Already found
+          
+          if (node.isText) {
+            const textLength = node.text?.length || 0
+            if (charCount + textLength > s.index!) {
+              from = pos + (s.index! - charCount)
+              return false
+            }
+            charCount += textLength
+          } else if (node.isBlock && charCount > 0) {
+            charCount += 1 // Account for newline
+          }
+        })
+        
+        if (from !== -1 && editor.view) {
+          // Get the coordinates of the position
+          const coords = editor.view.coordsAtPos(from)
+          const editorElement = editor.view.dom
+          const editorRect = editorElement.getBoundingClientRect()
+          
+          // Calculate if we need to scroll
+          const isAboveViewport = coords.top < editorRect.top + 50 // 50px buffer
+          const isBelowViewport = coords.bottom > editorRect.bottom - 50 // 50px buffer
+          
+          if (isAboveViewport || isBelowViewport) {
+            // Calculate the target scroll position to center the text
+            const targetScrollTop = coords.top - editorRect.top - (editorRect.height / 2) + editorElement.scrollTop
+            
+            // Smooth scroll to the position
+            editorElement.scrollTo({
+              top: Math.max(0, targetScrollTop),
+              behavior: 'smooth'
+            })
+          }
+          
+          // Just focus the editor without setting any selection
+          editor.commands.focus('start', { scrollIntoView: false })
+        }
+      } else if (s.index !== undefined) {
+        // This is a spell check suggestion with only index (no length)
+        // Use the original behavior - just focus the editor
+        // The highlighting is handled by the toggle state above
+        editor.commands.focus()
+      } else {
+        // Just focus without selection
+        editor.commands.focus('start', { scrollIntoView: false })
+      }
     },
     [editor],
   )
@@ -289,23 +400,34 @@ export function EditorPage() {
 
     // Immediately update underline extensions to reflect the change.
     if (editor && editor.view) {
+      // Add highlight state to remaining suggestions
+      const correctnessWithHighlight = grammarSuggestionsRef.current.map(sg => ({
+        ...sg,
+        highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+      }))
+      
       const tr1 = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
-        suggestions: grammarSuggestionsRef.current,
+        suggestions: correctnessWithHighlight,
       })
       editor.view.dispatch(tr1)
 
+      const aiWithHighlight = aiSuggestionsRef.current.map(sg => ({
+        ...sg,
+        highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+      }))
+
       const tr2 = editor.view.state.tr.setMeta(clarityUnderlineKey as any, {
-        suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Clarity"),
+        suggestions: aiWithHighlight.filter((sg) => sg.category === "Clarity"),
       })
       editor.view.dispatch(tr2)
 
       const tr3 = editor.view.state.tr.setMeta(engagementUnderlineKey as any, {
-        suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Engagement"),
+        suggestions: aiWithHighlight.filter((sg) => sg.category === "Engagement"),
       })
       editor.view.dispatch(tr3)
 
       const tr4 = editor.view.state.tr.setMeta(deliveryUnderlineKey as any, {
-        suggestions: aiSuggestionsRef.current.filter((sg) => sg.category === "Delivery"),
+        suggestions: aiWithHighlight.filter((sg) => sg.category === "Delivery"),
       })
       editor.view.dispatch(tr4)
     }
@@ -357,6 +479,14 @@ export function EditorPage() {
         }
 
         editor.chain().focus("end").insertContent(replacement).run()
+        
+        // Remove highlight for the accepted suggestion
+        setHighlightedSuggestionKeys((prev: Set<string>) => {
+          const newSet = new Set(prev)
+          newSet.delete(getHighlightKey(s))
+          return newSet
+        })
+        
         removeSuggestionById(s.id)
         return
       } else if (s.category === "Clarity" || s.category === "Engagement" || s.category === "Delivery") {
@@ -384,6 +514,14 @@ export function EditorPage() {
 
       const newHtml = html.replace(original, newReplacement)
       editor.commands.setContent(newHtml)
+      
+      // Remove highlight for the accepted suggestion
+      setHighlightedSuggestionKeys((prev: Set<string>) => {
+        const newSet = new Set(prev)
+        newSet.delete(getHighlightKey(s))
+        return newSet
+      })
+      
       removeSuggestionById(s.id)
 
       /* --------------------------------------------------------------
@@ -399,6 +537,25 @@ export function EditorPage() {
             return { ...sg, index: sg.index + lengthDelta }
           }
           return sg
+        })
+      }
+      
+      // Clear highlights for any suggestions that were in the replaced text
+      if (acceptedCharIndex !== null && s.length) {
+        const affectedStart = acceptedCharIndex
+        const affectedEnd = acceptedCharIndex + s.length
+        
+        setHighlightedSuggestionKeys((prev: Set<string>) => {
+          const newSet = new Set(prev)
+          // Remove highlights for suggestions that were in the replaced text range
+          grammarSuggestionsRef.current.forEach((sg) => {
+            if (sg.index !== undefined && 
+                sg.index >= affectedStart && 
+                sg.index < affectedEnd) {
+              newSet.delete(getHighlightKey(sg))
+            }
+          })
+          return newSet
         })
       }
 
@@ -445,6 +602,13 @@ export function EditorPage() {
         next.add(key)
         dismissedSuggestionKeysRef.current = next
         return next
+      })
+      
+      // Remove highlight for the dismissed suggestion
+      setHighlightedSuggestionKeys((prev: Set<string>) => {
+        const newSet = new Set(prev)
+        newSet.delete(getHighlightKey(s))
+        return newSet
       })
 
       removeSuggestionById(s.id)
@@ -567,10 +731,27 @@ export function EditorPage() {
         refreshSuggestions()
 
         if (ed && ed.view) {
+          // Update clarity underlines while preserving grammar highlight states
+          const clarityWithHighlight = claritySuggestions.map(sg => ({
+            ...sg,
+            highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+          }))
+          
           const tr = ed.view.state.tr.setMeta(clarityUnderlineKey as any, {
-            suggestions: claritySuggestions,
+            suggestions: clarityWithHighlight,
           })
           ed.view.dispatch(tr)
+          
+          // Also update grammar suggestions to preserve their highlight state
+          const grammarWithHighlight = grammarSuggestionsRef.current.map(sg => ({
+            ...sg,
+            highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+          }))
+          
+          const tr2 = ed.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+            suggestions: grammarWithHighlight,
+          })
+          ed.view.dispatch(tr2)
         }
       } catch (err) {
         console.error("Error generating clarity suggestions", err)
@@ -657,10 +838,42 @@ export function EditorPage() {
         refreshSuggestions()
 
         if (ed && ed.view) {
+          // Update engagement underlines while preserving all highlight states
+          const engagementWithHighlight = engagementSuggestions.map(sg => ({
+            ...sg,
+            highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+          }))
+          
           const tr = ed.view.state.tr.setMeta(engagementUnderlineKey as any, {
-            suggestions: engagementSuggestions,
+            suggestions: engagementWithHighlight,
           })
           ed.view.dispatch(tr)
+          
+          // Preserve grammar suggestions highlight state
+          const grammarWithHighlight = grammarSuggestionsRef.current.map(sg => ({
+            ...sg,
+            highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+          }))
+          
+          const tr2 = ed.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+            suggestions: grammarWithHighlight,
+          })
+          ed.view.dispatch(tr2)
+          
+          // Preserve other AI suggestions highlight state
+          const clarityWithHighlight = aiSuggestionsRef.current
+            .filter((sg) => sg.category === "Clarity")
+            .map(sg => ({
+              ...sg,
+              highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+            }))
+          
+          if (clarityWithHighlight.length > 0) {
+            const tr3 = ed.view.state.tr.setMeta(clarityUnderlineKey as any, {
+              suggestions: clarityWithHighlight,
+            })
+            ed.view.dispatch(tr3)
+          }
         }
       } catch (err) {
         console.error("Error generating engagement suggestions", err)
@@ -741,8 +954,56 @@ export function EditorPage() {
         refreshSuggestions()
 
         if (ed && ed.view) {
-          const tr = ed.view.state.tr.setMeta(deliveryUnderlineKey as any, { suggestions: deliverySuggestions })
+          // Update delivery underlines while preserving all highlight states
+          const deliveryWithHighlight = deliverySuggestions.map(sg => ({
+            ...sg,
+            highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+          }))
+          
+          const tr = ed.view.state.tr.setMeta(deliveryUnderlineKey as any, { 
+            suggestions: deliveryWithHighlight 
+          })
           ed.view.dispatch(tr)
+          
+          // Preserve grammar suggestions highlight state
+          const grammarWithHighlight = grammarSuggestionsRef.current.map(sg => ({
+            ...sg,
+            highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+          }))
+          
+          const tr2 = ed.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+            suggestions: grammarWithHighlight,
+          })
+          ed.view.dispatch(tr2)
+          
+          // Preserve other AI suggestions highlight states
+          const clarityWithHighlight = aiSuggestionsRef.current
+            .filter((sg) => sg.category === "Clarity")
+            .map(sg => ({
+              ...sg,
+              highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+            }))
+          
+          if (clarityWithHighlight.length > 0) {
+            const tr3 = ed.view.state.tr.setMeta(clarityUnderlineKey as any, {
+              suggestions: clarityWithHighlight,
+            })
+            ed.view.dispatch(tr3)
+          }
+          
+          const engagementWithHighlight = aiSuggestionsRef.current
+            .filter((sg) => sg.category === "Engagement")
+            .map(sg => ({
+              ...sg,
+              highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+            }))
+          
+          if (engagementWithHighlight.length > 0) {
+            const tr4 = ed.view.state.tr.setMeta(engagementUnderlineKey as any, {
+              suggestions: engagementWithHighlight,
+            })
+            ed.view.dispatch(tr4)
+          }
         }
       } catch (err) {
         console.error("Delivery suggestions error", err)
@@ -768,10 +1029,21 @@ export function EditorPage() {
       } else if (cat === "Delivery") {
         const plain = editor?.getText() || ""
         runDeliveryAnalysis(plain, editor)
+      } else if (cat === "Correctness" && editor && editor.view) {
+        // When switching back to Correctness, ensure grammar suggestions have correct highlight state
+        const grammarWithHighlight = grammarSuggestionsRef.current.map(sg => ({
+          ...sg,
+          highlighted: highlightedSuggestionKeys.has(getHighlightKey(sg))
+        }))
+        
+        const tr = editor.view.state.tr.setMeta(correctnessUnderlineKey as any, {
+          suggestions: grammarWithHighlight,
+        })
+        editor.view.dispatch(tr)
       }
       setActiveSidebarCategory(cat)
     },
-    [editor, runClarityAnalysis, runEngagementAnalysis, runDeliveryAnalysis],
+    [editor, runClarityAnalysis, runEngagementAnalysis, runDeliveryAnalysis, highlightedSuggestionKeys, getHighlightKey],
   )
 
   // Load document on mount
@@ -1029,6 +1301,7 @@ export function EditorPage() {
         <SuggestionSidebar
           editor={editor}
           suggestions={suggestions}
+          highlightedSuggestionIds={highlightedSuggestionKeys}
           onSelect={handleSelectSuggestion}
           onAccept={handleAcceptSuggestion}
           onDismiss={handleDismissSuggestion}
@@ -1040,7 +1313,3 @@ export function EditorPage() {
     </div>
   )
 }
-
-/* ------------------------------------------------------------------
- *  OpenAI Clarity analysis
- * ----------------------------------------------------------------*/

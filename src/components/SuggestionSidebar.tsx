@@ -34,9 +34,21 @@ export interface Suggestion {
   length?: number
 }
 
+// Helper to produce a stable key for tracking highlights
+const getHighlightKey = (s: Suggestion) => {
+  // For spell check suggestions, use index and title as a stable identifier
+  if (s.category === "Correctness" && s.index !== undefined) {
+    return `${s.category}-${s.index}-${s.title}`
+  }
+  // For AI suggestions, use the excerpt as it's unique
+  return `${s.category}-${s.excerpt}`
+}
+
 interface Props {
   editor?: Editor | null
   suggestions: Suggestion[]
+  /** Set of suggestion keys that are currently highlighted in the editor */
+  highlightedSuggestionIds?: Set<string>
   /** Triggered when the user simply clicks on a card (outside action buttons). */
   onSelect?: (suggestion: Suggestion) => void
   /** Triggered when the user accepts a suggestion. Optionally with chosen replacement word. */
@@ -54,6 +66,7 @@ interface Props {
 export function SuggestionSidebar({
   editor: _editor,
   suggestions,
+  highlightedSuggestionIds = new Set(),
   onSelect,
   onAccept,
   onDismiss,
@@ -125,10 +138,15 @@ export function SuggestionSidebar({
         <div className="p-4 space-y-3">
           {filtered.map((s) => {
             const config = categoryConfig[s.category]
+            const isHighlighted = highlightedSuggestionIds.has(getHighlightKey(s))
             return (
               <div
                 key={s.id}
-                className="cursor-pointer p-4 rounded-lg border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all duration-150 bg-white"
+                className={`cursor-pointer p-4 rounded-lg border transition-all duration-150 ${
+                  isHighlighted 
+                    ? 'border-blue-400 bg-blue-50 shadow-md' 
+                    : 'border-gray-100 hover:border-gray-200 hover:shadow-sm bg-white'
+                }`}
                 onClick={() => onSelect?.(s)}
               >
                 {/* Indicator & title */}

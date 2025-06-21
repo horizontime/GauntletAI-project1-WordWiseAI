@@ -115,42 +115,71 @@ function charIndexToPos(doc: any, charIndex: number): number | null {
   return found
 }
 
+/** Map a ProseMirror position to its character index in plain text. */
+function posToCharIndex(doc: any, targetPos: number): number {
+  let charIdx = 0
+  let blockCount = 0
+  
+  doc.descendants((node: any, pos: number) => {
+    if (pos >= targetPos) return false
+    
+    // For each block node (paragraph), add a newline (except for the first)
+    if (node.isBlock) {
+      if (blockCount > 0) {
+        charIdx += 1
+      }
+      blockCount++
+    }
+    
+    if (node.isText && pos + node.nodeSize <= targetPos) {
+      charIdx += node.text?.length || 0
+    } else if (node.isText) {
+      // Partial text node - only count up to targetPos
+      charIdx += Math.max(0, targetPos - pos)
+      return false
+    }
+    
+    return true
+  })
+  return charIdx
+}
+
+interface ExtendedSuggestion extends CheckerSuggestion {
+  highlighted?: boolean
+}
+
 export const clarityUnderlineKey = new PluginKey("clarityUnderline")
 
 export const ClarityUnderline = Extension.create({
   name: "clarityUnderline",
 
   addProseMirrorPlugins() {
-    const buildDecos = (doc: any, sel: any, suggestions: CheckerSuggestion[]): DecorationSet => {
-      // Mark selection parameter as read to avoid TS6133 when strict noUnusedParameters is enabled
-      void sel
+    /** Build a DecorationSet from the given suggestions array. */
+    const buildDecos = (doc: any, sel: any, suggestions: ExtendedSuggestion[]): DecorationSet => {
       const plain = getPlainText(doc)
+
+      // Don't underline the word currently being typed
+      let cutOff = plain.length
+      if (sel?.empty) {
+        const caretIdx = posToCharIndex(doc, sel.from)
+        const before = plain.slice(0, caretIdx)
+        const idxSpace = before.lastIndexOf(" ")
+        const idxNl = Math.max(before.lastIndexOf("\n"), before.lastIndexOf("\t"))
+        const lastIdx = Math.max(idxSpace, idxNl)
+        cutOff = lastIdx === -1 ? 0 : lastIdx + 1
+      }
 
       const decos: Decoration[] = []
       suggestions.forEach((s) => {
-        if (s.index == null) return
-        const start = s.index
-        let end: number
+        if (s.index === undefined || s.length === undefined) return
 
-        if (typeof (s as any).length === "number") {
-          end = start + (s as any).length!
-        } else {
-          // Compute until next sentence-ending punctuation (.!?), inclusive
-          const tail = plain.slice(start)
-          const mEnd = tail.match(/[^.!?]*[.!?]/)
-          if (mEnd) {
-            end = start + mEnd[0].length
-          } else {
-            end = start + tail.length
-          }
-        }
-
-        const from = charIndexToPos(doc, start)
-        const to = charIndexToPos(doc, end)
+        const from = charIndexToPos(doc, s.index)
+        const to = charIndexToPos(doc, s.index + s.length)
         if (from !== null && to !== null && to > from) {
-          // Extend the decoration to cover the entire word
-          const extended = extendDecorationToWord(doc, from, to)
-          decos.push(Decoration.inline(extended.from, extended.to, { class: "tiptap-clarity-underline" }))
+          const className = s.highlighted 
+            ? "tiptap-clarity-underline tiptap-highlighted" 
+            : "tiptap-clarity-underline"
+          decos.push(Decoration.inline(from, to, { class: className }))
         }
       })
 
@@ -163,7 +192,7 @@ export const ClarityUnderline = Extension.create({
         state: {
           init: () => DecorationSet.empty,
           apply(tr, old) {
-            const meta = tr.getMeta(clarityUnderlineKey) as { suggestions?: CheckerSuggestion[] } | undefined
+            const meta = tr.getMeta(clarityUnderlineKey) as { suggestions?: ExtendedSuggestion[] } | undefined
             if (meta && meta.suggestions) {
               return buildDecos(tr.doc, tr.selection, meta.suggestions)
             }
