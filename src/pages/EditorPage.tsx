@@ -1269,12 +1269,18 @@ export function EditorPage() {
               <ListOrderedIcon className="w-4 h-4" />
             </TooltipButton>
 
+            <div className="w-px h-6 bg-gray-300 mx-3"></div>
+
             {/* Generate Text */}
             <TooltipButton
               onClick={() => setIsGenerateOpen(true)}
-              tooltip="AI writing assistant"
+              tooltip="Get help with your ideas."
+              
             >
-              <SparklesIcon className="w-4 h-4" />
+              <div className="flex items-center">
+                <SparklesIcon className="w-4 h-4" />
+                <span className="ml-1.5 text-sm">AI writing assistant</span>
+              </div>
             </TooltipButton>
           </div>
         </div>
