@@ -19,7 +19,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
       />
 
       {/* Modal content */}
-      <div className="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+      <div className="relative z-10 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg">
         <div className="flex items-start justify-between">
           <h2 className="text-lg font-medium text-gray-900">{title}</h2>
           <button

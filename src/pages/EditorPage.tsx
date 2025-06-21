@@ -27,9 +27,11 @@ import {
   ArrowLeftIcon,
   FileTextIcon,
   ChevronsLeft,
+  SparklesIcon,
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
+import { GenerateTextModal } from "../components/GenerateTextModal"
 
 // Utility to split text into sentences (rough approximation)
 const RE_SENTENCE = /[^.!?]+[.!?]*/g
@@ -1073,6 +1075,9 @@ export function EditorPage() {
     // Only run when the document ID changes to avoid resetting content on each keystroke
   }, [currentDocument?.id, editor])
 
+  // Generate text modal state
+  const [isGenerateOpen, setIsGenerateOpen] = useState(false)
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -1249,6 +1254,14 @@ export function EditorPage() {
             >
               <ListOrderedIcon className="w-4 h-4" />
             </button>
+
+            {/* Generate Text */}
+            <button
+              onClick={() => setIsGenerateOpen(true)}
+              className="p-2.5 rounded-lg transition-colors duration-150 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            >
+              <SparklesIcon className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -1310,6 +1323,18 @@ export function EditorPage() {
           onCategoryChange={handleCategoryChange}
         />
       )}
+
+      {/* Generate Text Modal */}
+      <GenerateTextModal
+        isOpen={isGenerateOpen}
+        onClose={() => setIsGenerateOpen(false)}
+        currentText={editor?.getText() || ""}
+        onInsert={(text) => {
+          if (!editor) return
+          editor.chain().focus().insertContent(text).run()
+          setIsGenerateOpen(false)
+        }}
+      />
     </div>
   )
 }
