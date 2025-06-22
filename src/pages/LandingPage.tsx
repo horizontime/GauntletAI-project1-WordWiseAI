@@ -31,7 +31,7 @@ export function LandingPage() {
               Sign In
             </Link>
             <Link
-              to="/auth"
+              to="/auth?demo=true"
               className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-sm"
             >
               Get Started Free
@@ -61,7 +61,7 @@ export function LandingPage() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
           <Link
-            to="/auth"
+            to="/auth?demo=true"
             className="inline-flex items-center px-8 py-3 text-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-sm"
           >
             Try It Free
@@ -155,7 +155,7 @@ export function LandingPage() {
             Join thousands of writers who've improved their skills with WordWise AI
           </p>
           <Link
-            to="/auth"
+            to="/auth?demo=true"
             className="inline-flex items-center px-8 py-3 text-lg bg-white text-blue-600 rounded-md hover:bg-gray-100 transition-all duration-200 shadow-sm"
           >
             Start Writing Better Today

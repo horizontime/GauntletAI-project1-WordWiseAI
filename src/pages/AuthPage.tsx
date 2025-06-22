@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { supabase } from '../lib/supabase'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Sparkles, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react'
 
 export function AuthPage() {
@@ -15,8 +15,18 @@ export function AuthPage() {
   const [success, setSuccess] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showDemoArrow, setShowDemoArrow] = useState(false)
 
   const { signIn, signUp } = useAuthStore()
+  const location = useLocation()
+
+  // Check if user came from landing page with demo intent
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    if (searchParams.get('demo') === 'true') {
+      setShowDemoArrow(true)
+    }
+  }, [location])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -282,17 +292,39 @@ export function AuthPage() {
             </div>
 
             <div className="text-center">
-              <button
-                type="button"
-                onClick={handleDemoLogin}
-                disabled={loading}
-                className="w-full h-12 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <LoadingSpinner size="sm" className="mr-2" />
-                ) : null}
-                Try demo (no account)
-              </button>
+              <div className="relative inline-block w-full">
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={loading}
+                  className="w-full h-12 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <LoadingSpinner size="sm" className="mr-2" />
+                  ) : null}
+                  Try demo (no account)
+                </button>
+                
+                {/* Animated arrow */}
+                {showDemoArrow && (
+                  <div
+                    className="absolute -left-20 top-1/2 -translate-y-1/2 text-blue-600"
+                    style={{
+                      animation: 'slideLeftRight 1s ease-in-out infinite'
+                    }}
+                  >
+                    <svg width="60" height="40" viewBox="0 0 60 40" fill="none" className="w-16 h-10">
+                      <path 
+                        d="M5 20 L45 20 M45 20 L35 10 M45 20 L35 30" 
+                        stroke="currentColor" 
+                        strokeWidth="4" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
