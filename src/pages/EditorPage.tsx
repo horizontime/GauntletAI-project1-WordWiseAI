@@ -28,10 +28,6 @@ import {
   FileTextIcon,
   ChevronsLeft,
   SparklesIcon,
-  MoreHorizontalIcon,
-  EyeIcon,
-  DownloadIcon,
-  ShareIcon,
   CheckCircleIcon,
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
@@ -1198,18 +1194,6 @@ export function EditorPage() {
               <SaveIcon className="w-4 h-4 mr-2 inline" />
               Save
             </button>
-            <button className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              <EyeIcon className="w-4 h-4 mr-2 inline" />
-              Preview
-            </button>
-            <button className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              <ShareIcon className="w-4 h-4 mr-2 inline" />
-              Share
-            </button>
-            <button className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              <DownloadIcon className="w-4 h-4 mr-2 inline" />
-              Export
-            </button>
           </div>
         </div>
       </header>
@@ -1306,10 +1290,6 @@ export function EditorPage() {
           >
             <SparklesIcon className="w-4 h-4 mr-2" />
             <span className="text-sm">AI writing assistant</span>
-          </button>
-
-          <button className="p-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 ml-auto">
-            <MoreHorizontalIcon className="w-4 h-4" />
           </button>
         </div>
       </div>
