@@ -298,12 +298,13 @@ export function DashboardPage() {
                                   score={doc.writingScore.overall} 
                                   writingScore={doc.writingScore}
                                   size="sm"
+                                  showLabel={true}
                                 />
                               )}
                               {wordCount > 0 && doc.suggestions_applied > 0 && (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 flex-shrink-0">
                                   <ZapIcon className="w-3 h-3 mr-1" />
-                                  {doc.suggestions_applied} suggestions
+                                  {doc.suggestions_applied} Suggestions Applied
                                 </span>
                               )}
                             </div>

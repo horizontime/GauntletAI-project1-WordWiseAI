@@ -9,9 +9,10 @@ interface ScoreBadgeProps {
   previousScore?: number
   onClick?: () => void
   clickable?: boolean
+  showLabel?: boolean
 }
 
-export function ScoreBadge({ score, writingScore, size = 'md', showTrend = false, previousScore, onClick, clickable }: ScoreBadgeProps) {
+export function ScoreBadge({ score, writingScore, size = 'md', showTrend = false, previousScore, onClick, clickable, showLabel = false }: ScoreBadgeProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
   // Determine color based on score
@@ -48,7 +49,7 @@ export function ScoreBadge({ score, writingScore, size = 'md', showTrend = false
         onMouseLeave={() => setShowTooltip(false)}
         onClick={clickable ? onClick : undefined}
       >
-        <span>{score}%</span>
+        <span>{showLabel ? 'Writing Score: ' : ''}{score}%</span>
         {showTrend && trendIcon && (
           <span className={trend > 0 ? 'text-green-600' : 'text-red-600'}>
             {trendIcon}
