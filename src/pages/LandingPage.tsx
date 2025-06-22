@@ -143,6 +143,272 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="container mx-auto px-4 py-20 bg-white/50 backdrop-blur-sm">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">Simple, Transparent Pricing</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Choose the plan that works best for you. Upgrade or downgrade at any time.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {/* Free Plan */}
+          <div className="border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 bg-white rounded-lg flex flex-col">
+            <div className="p-8 text-center flex flex-col flex-grow">
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Free</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-gray-900">$0</span>
+                <span className="text-gray-600">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-left flex-grow">
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Up to 3 documents</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Basic grammar checking</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Limited AI suggestions</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Email support</span>
+                </li>
+              </ul>
+              <Link
+                to="/auth"
+                className="block w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Get Started Free
+              </Link>
+            </div>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="border-2 border-blue-500 hover:border-blue-600 transition-all duration-300 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg relative flex flex-col">
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                Most Popular
+              </span>
+            </div>
+            <div className="p-8 text-center flex flex-col flex-grow">
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Pro</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  $12
+                </span>
+                <span className="text-gray-600">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-left flex-grow">
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Unlimited documents</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Advanced AI suggestions</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Clarity & engagement tools</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Priority support</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Export to multiple formats</span>
+                </li>
+              </ul>
+              <Link
+                to="/auth"
+                className="block w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+              >
+                Start Pro Trial
+              </Link>
+            </div>
+          </div>
+
+          {/* Enterprise Plan */}
+          <div className="border-2 border-gray-200 hover:border-purple-300 transition-all duration-300 bg-white rounded-lg flex flex-col">
+            <div className="p-8 text-center flex flex-col flex-grow">
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Enterprise</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-gray-900">$49</span>
+                <span className="text-gray-600">/month</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-left flex-grow">
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Everything in Pro</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Team collaboration</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Custom style guides</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">Admin dashboard</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-gray-600">24/7 phone support</span>
+                </li>
+              </ul>
+              <Link
+                to="/contact"
+                className="block w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Contact Sales
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center mt-12">
+          <p className="text-gray-600 mb-4">All plans include a 14-day free trial. No credit card required.</p>
+          <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
+            <div className="flex items-center">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+              <span>Cancel anytime</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+              <span>30-day money back guarantee</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+              <span>Secure payments</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="container mx-auto px-4 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">About WordWise AI</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            We're on a mission to help everyone become a better writer through the power of artificial intelligence.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+          <div>
+            <h3 className="text-2xl font-bold mb-6 text-gray-900">Our Mission</h3>
+            <p className="text-gray-600 leading-relaxed mb-6">
+              At WordWise AI, we believe that great writing should be accessible to everyone. Our advanced AI technology
+              doesn't just correct your mistakes—it teaches you why changes matter, helping you become a more confident
+              and skilled writer.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-6">
+              Founded in 2023 by a team of linguists, AI researchers, and educators, we've helped over 50,000 writers
+              improve their skills and achieve their goals.
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">50K+</div>
+                <div className="text-gray-600">Active Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">1M+</div>
+                <div className="text-gray-600">Documents Improved</div>
+              </div>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="aspect-video rounded-2xl bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+              <div className="text-center">
+                <Sparkles className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+                <p className="text-gray-600">AI-Powered Writing Excellence</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Team Section */}
+        <div className="mb-20">
+          <h3 className="text-2xl font-bold mb-12 text-center text-gray-900">Meet Our Team</h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-lg p-6 text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-white">SJ</span>
+              </div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">Sarah Johnson</h4>
+              <p className="text-blue-600 font-medium mb-3">CEO & Co-Founder</p>
+              <p className="text-gray-600 text-sm">
+                Former linguistics professor with 15 years of experience in educational technology.
+              </p>
+            </div>
+
+            <div className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-lg p-6 text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-white">MC</span>
+              </div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">Michael Chen</h4>
+              <p className="text-purple-600 font-medium mb-3">CTO & Co-Founder</p>
+              <p className="text-gray-600 text-sm">
+                AI researcher and former Google engineer specializing in natural language processing.
+              </p>
+            </div>
+
+            <div className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-lg p-6 text-center">
+              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-white">ER</span>
+              </div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">Emily Rodriguez</h4>
+              <p className="text-green-600 font-medium mb-3">Head of Product</p>
+              <p className="text-gray-600 text-sm">
+                UX designer and educator focused on making AI tools accessible to everyone.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Values Section */}
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Target className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold mb-4 text-gray-900">Accuracy</h3>
+            <p className="text-gray-600 leading-relaxed">
+              We're committed to providing the most accurate and helpful writing suggestions powered by cutting-edge
+              AI.
+            </p>
+          </div>
+
+          <div className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold mb-4 text-gray-900">Accessibility</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Great writing tools should be available to everyone, regardless of their background or experience level.
+            </p>
+          </div>
+
+          <div className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-8 text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold mb-4 text-gray-900">Innovation</h3>
+            <p className="text-gray-600 leading-relaxed">
+              We continuously push the boundaries of what's possible with AI to create better writing experiences.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="border-0 shadow-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-12 text-center">
