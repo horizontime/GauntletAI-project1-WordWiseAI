@@ -14,7 +14,8 @@ export interface WritingScore {
     grammar: number;
     clarity: number;
     engagement: number;
-    structure: number;
+    delivery: number;
+    cohesiveness: number;
   };
   feedback: string;
   lastCalculated: Date;
@@ -49,13 +50,14 @@ Analyze this student text and rate it on a scale of 0-100 for each category:
 1. Grammar and Spelling (0-100)
 2. Clarity and Coherence (0-100)
 3. Engagement and Style (0-100)
-4. Structure and Organization (0-100)
+4. Delivery - tone, flow, and readability of ideas flowing effectively (0-100)
+5. Cohesiveness - consistency of content, making sense and not jumping between unrelated topics (0-100)
 
 Also provide one sentence of constructive feedback.
 
 Text: "${text}"
 
-Return as JSON: { grammar: number, clarity: number, engagement: number, structure: number, feedback: string }
+Return as JSON: { grammar: number, clarity: number, engagement: number, delivery: number, cohesiveness: number, feedback: string }
 `;
 ```
 
@@ -112,12 +114,12 @@ const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 export async function calculateWritingScore(text: string): Promise<WritingScore> {
   if (!text || text.trim().length < 50) {
-    return {
-      overall: 0,
-      breakdown: { grammar: 0, clarity: 0, engagement: 0, structure: 0 },
-      feedback: "Text too short to analyze",
-      lastCalculated: new Date()
-    };
+      return {
+    overall: 0,
+    breakdown: { grammar: 0, clarity: 0, engagement: 0, delivery: 0, cohesiveness: 0 },
+    feedback: "Text too short to analyze",
+    lastCalculated: new Date()
+  };
   }
 
   try {
@@ -143,7 +145,7 @@ export async function calculateWritingScore(text: string): Promise<WritingScore>
     
     // Calculate overall score
     const overall = Math.round(
-      (aiResult.grammar + aiResult.clarity + aiResult.engagement + aiResult.structure) / 4
+      (aiResult.grammar + aiResult.clarity + aiResult.engagement + aiResult.delivery + aiResult.cohesiveness) / 5
     );
 
     return {
@@ -178,7 +180,8 @@ function getBasicScore(text: string): WritingScore {
       grammar: score,
       clarity: score,
       engagement: score,
-      structure: score
+      delivery: score,
+      cohesiveness: score
     },
     feedback: "AI analysis unavailable. Showing basic score.",
     lastCalculated: new Date()

@@ -4,7 +4,8 @@ export interface WritingScore {
     grammar: number;
     clarity: number;
     engagement: number;
-    structure: number;
+    delivery: number;
+    cohesiveness: number;
   };
   feedback: string;
   lastCalculated: Date;

@@ -10,7 +10,7 @@ export async function calculateWritingScore(text: string): Promise<WritingScore>
     console.log('Text too short for analysis:', text.length)
     return {
       overall: 0,
-      breakdown: { grammar: 0, clarity: 0, engagement: 0, structure: 0 },
+      breakdown: { grammar: 0, clarity: 0, engagement: 0, delivery: 0, cohesiveness: 0 },
       feedback: "Text too short to analyze",
       lastCalculated: new Date()
     };
@@ -39,14 +39,15 @@ export async function calculateWritingScore(text: string): Promise<WritingScore>
 1. Grammar and Spelling (0-100)
 2. Clarity and Coherence (0-100)
 3. Engagement and Style (0-100)
-4. Structure and Organization (0-100)
+4. Delivery - tone, flow, and readability of ideas flowing effectively (0-100)
+5. Cohesiveness - consistency of content, making sense and not jumping between unrelated topics (0-100)
 
 Also provide one sentence of constructive feedback for the student.
 
 Text: "${text}"
 
 Return ONLY a JSON object in this exact format:
-{ "grammar": number, "clarity": number, "engagement": number, "structure": number, "feedback": "string" }`
+{ "grammar": number, "clarity": number, "engagement": number, "delivery": number, "cohesiveness": number, "feedback": "string" }`
         }],
         temperature: 0.3
       })
@@ -61,7 +62,7 @@ Return ONLY a JSON object in this exact format:
     
     // Calculate overall score
     const overall = Math.round(
-      (aiResult.grammar + aiResult.clarity + aiResult.engagement + aiResult.structure) / 4
+      (aiResult.grammar + aiResult.clarity + aiResult.engagement + aiResult.delivery + aiResult.cohesiveness) / 5
     );
 
     return {
@@ -70,7 +71,8 @@ Return ONLY a JSON object in this exact format:
         grammar: aiResult.grammar,
         clarity: aiResult.clarity,
         engagement: aiResult.engagement,
-        structure: aiResult.structure
+        delivery: aiResult.delivery,
+        cohesiveness: aiResult.cohesiveness
       },
       feedback: aiResult.feedback,
       lastCalculated: new Date()
@@ -120,7 +122,8 @@ function getBasicScore(text: string): WritingScore {
       grammar: score,
       clarity: score,
       engagement: score,
-      structure: score
+      delivery: score,
+      cohesiveness: score
     },
     feedback: "AI analysis unavailable. Score based on basic text metrics.",
     lastCalculated: new Date()

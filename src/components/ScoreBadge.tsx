@@ -70,8 +70,12 @@ export function ScoreBadge({ score, writingScore, size = 'md', showTrend = false
                 <span>{writingScore.breakdown.engagement}%</span>
               </div>
               <div className="flex justify-between">
-                <span>Structure:</span>
-                <span>{writingScore.breakdown.structure}%</span>
+                <span>Delivery:</span>
+                <span>{writingScore.breakdown.delivery}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Cohesiveness:</span>
+                <span>{writingScore.breakdown.cohesiveness}%</span>
               </div>
             </div>
             {writingScore.feedback && (
