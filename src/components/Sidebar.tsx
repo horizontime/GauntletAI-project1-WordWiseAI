@@ -15,7 +15,7 @@ export function Sidebar() {
 
   return (
     <aside className="w-64 bg-gradient-to-b from-slate-50 to-slate-100 border-r-0 min-h-screen flex flex-col shadow-xl relative z-50">
-      <div className="border-b border-slate-200 p-6">
+      <div className="h-[73px] border-b border-gray-200/50 flex items-center px-6">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
