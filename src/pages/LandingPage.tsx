@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CheckCircle, Sparkles, Target, Zap, Users, Star, Play } from 'lucide-react'
+import { ArrowRight, CheckCircle, Sparkles, Target, Zap, Users, Star } from 'lucide-react'
 
 export function LandingPage() {
   return (
@@ -67,10 +67,6 @@ export function LandingPage() {
             Try It Free
             <ArrowRight className="ml-2 w-5 h-5" />
           </Link>
-          <button className="inline-flex items-center px-8 py-3 text-lg border-2 border-gray-300 text-gray-700 rounded-md hover:border-gray-400 transition-all duration-200">
-            <Play className="mr-2 w-5 h-5" />
-            Watch Demo
-          </button>
         </div>
 
         {/* Social Proof */}
