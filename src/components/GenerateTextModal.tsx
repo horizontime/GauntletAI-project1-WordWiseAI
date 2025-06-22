@@ -12,10 +12,14 @@ interface GenerateTextModalProps {
 
 const TONE_OPTIONS = [
   "Friendly",
+  "Conversational",
   "Formal",
   "Academic",
-  "Conversational",
   "Persuasive",
+  "Motivational",
+  "Humorous",
+  "Dramatic",
+  "Sarcastic",
 ]
 
 const CONTENT_TYPE_OPTIONS = [
@@ -36,7 +40,8 @@ export function GenerateTextModal({ isOpen, onClose, onInsert, currentText }: Ge
   const [output, setOutput] = useState<string>("")
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined
 
-  const [includeContext, setIncludeContext] = useState<boolean>(false)
+  // Checkbox should be checked by default, so start with `true`
+  const [includeContext, setIncludeContext] = useState<boolean>(true)
 
   // Sophistication level (0 – 10)
   const [sophistication, setSophistication] = useState<number>(5)
@@ -98,7 +103,7 @@ export function GenerateTextModal({ isOpen, onClose, onInsert, currentText }: Ge
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="✨ Idea Helper ✨">
+    <Modal isOpen={isOpen} onClose={onClose} title="✨ What's on your mind? ✨">
       <div className="space-y-4 md:flex md:space-x-6">
         <div className="flex-1 space-y-4">
           {/* Topic */}
