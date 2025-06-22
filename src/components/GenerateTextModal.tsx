@@ -11,15 +11,15 @@ interface GenerateTextModalProps {
 }
 
 const TONE_OPTIONS = [
-  "Friendly",
-  "Conversational",
-  "Formal",
-  "Academic",
-  "Persuasive",
-  "Motivational",
-  "Humorous",
-  "Dramatic",
-  "Sarcastic",
+  "😊 Friendly",
+  "💬 Conversational",
+  "👔 Formal",
+  "🎓 Academic",
+  "💪 Persuasive",
+  "✨ Motivational",
+  "😄 Humorous",
+  "🎭 Dramatic",
+  "😏 Sarcastic",
 ]
 
 const CONTENT_TYPE_OPTIONS = [
@@ -67,7 +67,9 @@ export function GenerateTextModal({ isOpen, onClose, onInsert, currentText }: Ge
 
     try {
       const readerLevel = sophisticationLabels[sophistication] || "college level"
-      let prompt = `Write a ${contentType.toLowerCase()} about "${topic.trim()}" in a ${tone.toLowerCase()} tone appropriate for a ${readerLevel} reader. Limit to ${sentences} sentence${sentences === 1 ? "" : "s"}.`;
+      // Strip emoji from tone by removing everything before the space
+      const toneText = tone.split(' ').slice(1).join(' ').toLowerCase()
+      let prompt = `Write a ${contentType.toLowerCase()} about "${topic.trim()}" in a ${toneText} tone appropriate for a ${readerLevel} reader. Limit to ${sentences} sentence${sentences === 1 ? "" : "s"}.`;
 
       if (includeContext && currentText.trim()) {
         prompt += `\n\nHere is the student's current writing for additional context:\n"""\n${currentText.trim()}\n"""`;
