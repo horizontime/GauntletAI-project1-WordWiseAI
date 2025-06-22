@@ -7,9 +7,11 @@ interface ScoreBadgeProps {
   size?: 'sm' | 'md' | 'lg'
   showTrend?: boolean
   previousScore?: number
+  onClick?: () => void
+  clickable?: boolean
 }
 
-export function ScoreBadge({ score, writingScore, size = 'md', showTrend = false, previousScore }: ScoreBadgeProps) {
+export function ScoreBadge({ score, writingScore, size = 'md', showTrend = false, previousScore, onClick, clickable }: ScoreBadgeProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
   // Determine color based on score
@@ -39,9 +41,12 @@ export function ScoreBadge({ score, writingScore, size = 'md', showTrend = false
   return (
     <div className="relative inline-block">
       <div
-        className={`inline-flex items-center gap-1 rounded-full font-medium border ${getScoreColor(score)} ${getSizeClasses()} cursor-default`}
+        className={`inline-flex items-center gap-1 rounded-full font-medium border ${getScoreColor(score)} ${getSizeClasses()} ${
+          clickable ? 'cursor-pointer hover:opacity-80 transition-opacity' : 'cursor-default'
+        }`}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
+        onClick={clickable ? onClick : undefined}
       >
         <span>{score}%</span>
         {showTrend && trendIcon && (

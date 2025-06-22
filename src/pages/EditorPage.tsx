@@ -34,6 +34,7 @@ import {
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
 import { GenerateTextModal } from "../components/GenerateTextModal"
+import { WritingScoreModal } from "../components/WritingScoreModal"
 
 // Utility to split text into sentences (rough approximation)
 const RE_SENTENCE = /[^.!?]+[.!?]*/g
@@ -1155,6 +1156,9 @@ export function EditorPage() {
 
   // Generate text modal state
   const [isGenerateOpen, setIsGenerateOpen] = useState(false)
+  
+  // Writing score modal state
+  const [isWritingScoreModalOpen, setIsWritingScoreModalOpen] = useState(false)
 
   if (loading) {
     return (
@@ -1368,6 +1372,8 @@ export function EditorPage() {
                           score={currentDocument.writingScore.overall} 
                           writingScore={currentDocument.writingScore}
                           size="sm"
+                          clickable
+                          onClick={() => setIsWritingScoreModalOpen(true)}
                         />
                       ) : (
                         <span className="text-gray-500 text-sm" title="Score will be calculated after saving">
@@ -1422,6 +1428,16 @@ export function EditorPage() {
           setIsGenerateOpen(false)
         }}
       />
+
+      {/* Writing Score Modal */}
+      {currentDocument?.writingScore && (
+        <WritingScoreModal
+          isOpen={isWritingScoreModalOpen}
+          onClose={() => setIsWritingScoreModalOpen(false)}
+          writingScore={currentDocument.writingScore}
+          documentText={editor?.getText() || ""}
+        />
+      )}
     </div>
   )
 }
