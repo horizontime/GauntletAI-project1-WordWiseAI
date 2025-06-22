@@ -158,7 +158,7 @@ export function DashboardPage() {
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 rounded-lg"
+                className="border border-gray-200/50 shadow-xl bg-white backdrop-blur-sm hover:shadow-2xl hover:border-gray-300/50 transition-all duration-300 rounded-lg"
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between">
@@ -186,7 +186,7 @@ export function DashboardPage() {
           </div>
 
           {/* Documents Section */}
-          <div className="border-0 shadow-lg bg-white/80 backdrop-blur-sm rounded-lg">
+          <div className="border border-gray-200/50 shadow-xl bg-white backdrop-blur-sm rounded-lg">
             <div className="p-6 pb-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900">Your Documents</h2>
@@ -219,7 +219,7 @@ export function DashboardPage() {
                     return (
                       <div
                         key={doc.id}
-                        className="border border-gray-100 rounded-lg p-6 hover:shadow-md transition-all duration-200 cursor-pointer group min-h-[200px] flex flex-col"
+                        className="border border-gray-200 bg-gray-50/50 rounded-lg p-6 hover:shadow-lg hover:bg-white hover:border-gray-300 transition-all duration-200 cursor-pointer group min-h-[200px] flex flex-col"
                         onClick={() => navigate(`/editor/${doc.id}`)}
                       >
                         <div className="flex items-start justify-between mb-3">
