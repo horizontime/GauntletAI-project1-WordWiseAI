@@ -13,6 +13,7 @@ import { LandingPage } from './pages/LandingPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { TermsPage } from './pages/TermsPage'
 import { ContactPage } from './pages/ContactPage'
+import { ScrollToTop } from './components/ScrollToTop'
 
 function App() {
   const { user, loading, initialize } = useAuthStore()
@@ -31,6 +32,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ScrollToTop />
       <Routes>
         <Route 
           path="/auth" 
