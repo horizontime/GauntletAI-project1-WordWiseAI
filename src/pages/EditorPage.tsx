@@ -240,7 +240,7 @@ export function EditorPage() {
     content: "<p></p>",
     editorProps: {
       attributes: {
-        class: "editor-content prose prose-lg max-w-none focus:outline-none px-8 py-6 bg-white mx-6 lg:mx-8 mt-6 rounded-lg shadow-sm border border-gray-200",
+        class: "editor-content prose prose-lg max-w-none focus:outline-none px-6 pt-4 pb-2 bg-white rounded-lg",
         spellcheck: "true",
         style: "white-space: pre-wrap; min-height: 500px;",
         "data-gramm": "false",
@@ -1319,11 +1319,9 @@ export function EditorPage() {
         {/* Editor Section */}
         <div className="flex-1 flex flex-col">
           {/* Writing Area */}
-          <div className="flex-1 p-8">
-            <div className="h-full border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-lg">
-              <div className="p-8 h-full">
-                <EditorContent editor={editor} />
-              </div>
+          <div className="flex-1 pt-4 px-4 pb-0">
+            <div className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-lg">
+              <EditorContent editor={editor} />
             </div>
           </div>
 
