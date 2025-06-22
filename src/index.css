@@ -9,7 +9,7 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 text-gray-900;
   }
 
   * {
@@ -18,17 +18,31 @@
 }
 
 @layer components {
+  /* Modern button styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-md shadow-sm hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-gray-700 font-medium rounded-md shadow-sm border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200;
+  }
+
+  /* Card styles */
+  .card-modern {
+    @apply bg-white/80 backdrop-blur-sm rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 border-0;
+  }
+
   /* TipTap Editor Styles */
   .ProseMirror {
     outline: none !important;
-    padding: 1.5rem;
+    padding: 2rem;
     min-height: 600px;
-    border: 2px solid #d1d5db !important;
+    border: 1px solid #e5e7eb !important;
     border-radius: 0.75rem;
     background-color: #ffffff;
-    font-size: 1rem;
-    line-height: 1.7;
-    color: #374151;
+    font-size: 1.125rem;
+    line-height: 1.75;
+    color: #1f2937;
     cursor: text;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -36,31 +50,33 @@
     font-family: inherit;
     width: 100%;
     box-sizing: border-box;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
   }
 
   .ProseMirror:focus {
     border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
   }
 
   .ProseMirror:hover {
-    border-color: #9ca3af !important;
+    border-color: #d1d5db !important;
   }
 
   /* Ensure editor container has proper styling */
   .editor-content,
   [data-tiptap-editor] {
-    border: 2px solid #d1d5db;
+    border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
     background-color: #ffffff;
-    padding: 1.5rem;
+    padding: 2rem;
     min-height: 600px;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
   }
 
   .editor-content:focus-within,
   [data-tiptap-editor]:focus-within {
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 3px 0 rgb(0 0 0 / 0.1);
   }
 
   .ProseMirror p.is-editor-empty:first-child::before {

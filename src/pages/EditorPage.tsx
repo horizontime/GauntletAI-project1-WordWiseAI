@@ -28,6 +28,12 @@ import {
   FileTextIcon,
   ChevronsLeft,
   SparklesIcon,
+  MoreHorizontalIcon,
+  TypeIcon,
+  EyeIcon,
+  DownloadIcon,
+  ShareIcon,
+  CheckCircleIcon,
 } from "lucide-react"
 import { SuggestionSidebar, type Suggestion } from "../components/SuggestionSidebar"
 import { checkText } from "../lib/textChecker"
@@ -1148,201 +1154,226 @@ export function EditorPage() {
   const statusBarClassName = `fixed bottom-0 left-0 ${isSidebarCollapsed ? "right-0" : "right-80"} bg-white border-t border-gray-200 shadow-sm`
 
   return (
-    <div className="min-h-screen bg-gray-50  mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleBackClick}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-150"
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-              </button>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                className="text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 w-96 max-w-md px-2 py-1 rounded-md hover:bg-gray-50 focus:bg-white"
-                placeholder="Untitled Document"
-              />
-            </div>
+      <header className="border-b border-white/20 backdrop-blur-sm bg-white/80 sticky top-0 z-40">
+        <div className="flex h-16 items-center gap-4 px-6">
+          <button
+            onClick={handleBackClick}
+            className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            Back
+          </button>
 
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500 font-medium">
-                {hasUnsavedChanges && !saving && (
-                  <span className="flex items-center">
-                    <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
-                    Unsaved changes
-                  </span>
-                )}
-                {saving && (
-                  <span className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
-                    Saving...
-                  </span>
-                )}
-                {!hasUnsavedChanges && !saving && (
-                  <span className="flex items-center">
-                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                    Saved
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={handleManualSave}
-                disabled={saving || !hasUnsavedChanges}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-              >
-                <SaveIcon className="w-4 h-4 mr-2" />
-                Save
-              </button>
+          <div className="flex-1">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              className="text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 px-2"
+              placeholder="Untitled Document"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              {!hasUnsavedChanges && !saving && (
+                <>
+                  <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                  <span>Saved</span>
+                </>
+              )}
+              {saving && (
+                <span className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+                  Saving...
+                </span>
+              )}
             </div>
+            <button
+              onClick={handleManualSave}
+              disabled={saving || !hasUnsavedChanges}
+              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
+            >
+              <SaveIcon className="w-4 h-4 mr-2 inline" />
+              Save
+            </button>
+            <button className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <EyeIcon className="w-4 h-4 mr-2 inline" />
+              Preview
+            </button>
+            <button className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <ShareIcon className="w-4 h-4 mr-2 inline" />
+              Share
+            </button>
+            <button className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <DownloadIcon className="w-4 h-4 mr-2 inline" />
+              Export
+            </button>
           </div>
         </div>
       </header>
 
       {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-white">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center space-x-1 py-3">
-            <TooltipButton
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              active={!!editor?.isActive("bold")}
-              tooltip="Bold"
-            >
-              <BoldIcon className="w-4 h-4" />
-            </TooltipButton>
+      <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm p-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+            className={`p-2 rounded-md transition-colors ${
+              editor?.isActive("bold") 
+                ? "bg-gray-100 text-gray-900" 
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <BoldIcon className="w-4 h-4" />
+          </button>
 
-            <TooltipButton
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              active={!!editor?.isActive("italic")}
-              tooltip="Italic"
-            >
-              <ItalicIcon className="w-4 h-4" />
-            </TooltipButton>
+          <button
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            className={`p-2 rounded-md transition-colors ${
+              editor?.isActive("italic") 
+                ? "bg-gray-100 text-gray-900" 
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <ItalicIcon className="w-4 h-4" />
+          </button>
 
-            <div className="w-px h-6 bg-gray-300 mx-3"></div>
+          <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
-            <TooltipButton
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-              active={!!editor?.isActive("heading", { level: 1 })}
-              tooltip="Heading 1"
-            >
-              <Heading1Icon className="w-4 h-4" />
-            </TooltipButton>
+          <button
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={`p-2 rounded-md transition-colors flex items-center ${
+              editor?.isActive("heading", { level: 1 }) 
+                ? "bg-gray-100 text-gray-900" 
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <TypeIcon className="w-4 h-4 mr-2" />
+            H1
+          </button>
 
-            <TooltipButton
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-              active={!!editor?.isActive("heading", { level: 2 })}
-              tooltip="Heading 2"
-            >
-              <Heading2Icon className="w-4 h-4" />
-            </TooltipButton>
+          <button
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={`p-2 rounded-md transition-colors flex items-center ${
+              editor?.isActive("heading", { level: 2 }) 
+                ? "bg-gray-100 text-gray-900" 
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <TypeIcon className="w-4 h-4 mr-2" />
+            H2
+          </button>
 
-            <TooltipButton
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-              active={!!editor?.isActive("heading", { level: 3 })}
-              tooltip="Heading 3"
-            >
-              <Heading3Icon className="w-4 h-4" />
-            </TooltipButton>
+          <button
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={`p-2 rounded-md transition-colors flex items-center ${
+              editor?.isActive("heading", { level: 3 }) 
+                ? "bg-gray-100 text-gray-900" 
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <TypeIcon className="w-4 h-4 mr-2" />
+            H3
+          </button>
 
-            <div className="w-px h-6 bg-gray-300 mx-3"></div>
+          <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
-            {/* Bullet List */}
-            <TooltipButton
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              active={!!editor?.isActive("bulletList")}
-              tooltip="Bullet list"
-            >
-              <ListIcon className="w-4 h-4" />
-            </TooltipButton>
+          <button
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+            className={`p-2 rounded-md transition-colors ${
+              editor?.isActive("bulletList") 
+                ? "bg-gray-100 text-gray-900" 
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <ListIcon className="w-4 h-4" />
+          </button>
 
-            {/* Numbered List */}
-            <TooltipButton
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              active={!!editor?.isActive("orderedList")}
-              tooltip="Numbered list"
-            >
-              <ListOrderedIcon className="w-4 h-4" />
-            </TooltipButton>
+          <button
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+            className={`p-2 rounded-md transition-colors ${
+              editor?.isActive("orderedList") 
+                ? "bg-gray-100 text-gray-900" 
+                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <ListOrderedIcon className="w-4 h-4" />
+          </button>
 
-            <div className="w-px h-6 bg-gray-300 mx-3"></div>
+          <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
-            {/* Generate Text */}
-            <TooltipButton
-              onClick={() => setIsGenerateOpen(true)}
-              tooltip="Get help with your ideas."
-              
-            >
-              <div className="flex items-center">
-                <SparklesIcon className="w-4 h-4" />
-                <span className="ml-1.5 text-sm">AI writing assistant</span>
+          <button
+            onClick={() => setIsGenerateOpen(true)}
+            className="p-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 flex items-center"
+          >
+            <SparklesIcon className="w-4 h-4 mr-2" />
+            <span className="text-sm">AI writing assistant</span>
+          </button>
+
+          <button className="p-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 ml-auto">
+            <MoreHorizontalIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex h-[calc(100vh-8rem)]">
+        {/* Editor Section */}
+        <div className="flex-1 flex flex-col">
+          {/* Writing Area */}
+          <div className="flex-1 p-8">
+            <div className="h-full border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-lg">
+              <div className="p-8 h-full">
+                <EditorContent editor={editor} />
               </div>
-            </TooltipButton>
-          </div>
-        </div>
-      </div>
-
-      {/* Editor */}
-      {/*
-        BubbleMenu temporarily removed due to stability issues ("Failed to execute 'removeChild'" error
-        after long inactivity). Once the upstream issue in @tiptap/react is resolved or an alternative
-        link–editing UI is implemented, this block can be restored.
-      */}
-
-      <div className="max-w-4xl mx-auto">
-        <EditorContent editor={editor} />
-      </div>
-
-      {/* Status Bar */}
-      <div className={statusBarClassName}>
-        <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 text-sm text-gray-600">
-            <div className="flex items-center space-x-6">
-              <span className="font-medium">
-                Words: <span className="text-gray-900">{wordCount}</span>
-              </span>
-              <span className="font-medium">
-                Characters: <span className="text-gray-900">{characterCount}</span>
-              </span>
             </div>
-            <div className="font-medium">
-              Last saved:{" "}
-              <span className="text-gray-900">
-                {currentDocument.updated_at
-                  ? new Date(currentDocument.updated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-                  : "Never"}
-              </span>
+          </div>
+
+          {/* Status Bar */}
+          <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm p-4">
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center gap-6">
+                <span>Words: {wordCount}</span>
+                <span>Characters: {characterCount}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500" style={{ width: '75%' }}></div>
+                  </div>
+                  <span>Writing Score: 85%</span>
+                </div>
+              </div>
+              <span>Last saved: {currentDocument.updated_at
+                ? new Date(currentDocument.updated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                : "Never"}</span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Render collapsed toggle button */}
-      {isSidebarCollapsed ? (
-        <button
-          onClick={() => setIsSidebarCollapsed(false)}
-          className="fixed right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label="Open suggestion panel"
-        >
-          <ChevronsLeft className="w-4 h-4" />
-        </button>
-      ) : (
-        <SuggestionSidebar
-          editor={editor}
-          suggestions={suggestions}
-          highlightedSuggestionIds={highlightedSuggestionKeys}
-          onSelect={handleSelectSuggestion}
-          onAccept={handleAcceptSuggestion}
-          onDismiss={handleDismissSuggestion}
-          onCollapse={() => setIsSidebarCollapsed(true)}
-          loading={activeSidebarCategory === "Clarity" ? clarityLoading : activeSidebarCategory === "Engagement" ? engagementLoading : activeSidebarCategory === "Delivery" ? deliveryLoading : false}
-          onCategoryChange={handleCategoryChange}
-        />
-      )}
+        {/* Render collapsed toggle button */}
+        {isSidebarCollapsed ? (
+          <button
+            onClick={() => setIsSidebarCollapsed(false)}
+            className="fixed right-4 top-1/2 -translate-y-1/2 z-30 p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Open suggestion panel"
+          >
+            <ChevronsLeft className="w-4 h-4" />
+          </button>
+        ) : (
+          <SuggestionSidebar
+            editor={editor}
+            suggestions={suggestions}
+            highlightedSuggestionIds={highlightedSuggestionKeys}
+            onSelect={handleSelectSuggestion}
+            onAccept={handleAcceptSuggestion}
+            onDismiss={handleDismissSuggestion}
+            onCollapse={() => setIsSidebarCollapsed(true)}
+            loading={activeSidebarCategory === "Clarity" ? clarityLoading : activeSidebarCategory === "Engagement" ? engagementLoading : activeSidebarCategory === "Delivery" ? deliveryLoading : false}
+            onCategoryChange={handleCategoryChange}
+          />
+        )}
+      </div>
 
       {/* Generate Text Modal */}
       <GenerateTextModal
