@@ -14,8 +14,7 @@ import {
   ClockIcon,
   TrendingUpIcon,
   TargetIcon,
-  ZapIcon,
-  MoreHorizontalIcon
+  ZapIcon
 } from 'lucide-react'
 import { Sidebar } from '../components/Sidebar'
 import toast from 'react-hot-toast'
@@ -212,7 +211,7 @@ export function DashboardPage() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {documents.map((doc) => {
                     const { status, className } = getDocumentStatus(doc)
                     const wordCount = getWordCount(doc.content)
@@ -220,49 +219,65 @@ export function DashboardPage() {
                     return (
                       <div
                         key={doc.id}
-                        className="border border-gray-100 rounded-lg p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                        className="border border-gray-100 rounded-lg p-6 hover:shadow-md transition-all duration-200 cursor-pointer group min-h-[200px] flex flex-col"
                         onClick={() => navigate(`/editor/${doc.id}`)}
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
                                 {doc.title}
                               </h3>
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${className}`}>
+                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${className} flex-shrink-0`}>
                                 {status}
                               </span>
                               {wordCount > 0 && Math.random() > 0.5 && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 flex-shrink-0">
                                   <ZapIcon className="w-3 h-3 mr-1" />
                                   {Math.floor(Math.random() * 10) + 1} suggestions
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-6 text-sm text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Edit3Icon className="w-4 h-4" />
-                                {wordCount} words
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <CalendarIcon className="w-4 h-4" />
-                                Created {formatDate(doc.created_at)}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <ClockIcon className="w-4 h-4" />
-                                Updated {formatDate(doc.updated_at)}
-                              </span>
-                            </div>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDeleteDocument(doc.id, doc.title)
-                            }}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-gray-100 rounded-md"
-                          >
-                            <MoreHorizontalIcon className="w-4 h-4 text-gray-500" />
-                          </button>
+                          <div className="flex items-center gap-1 ml-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                navigate(`/editor/${doc.id}`)
+                              }}
+                              className="p-2 hover:bg-blue-100 rounded-md flex-shrink-0 transition-colors"
+                              title="Edit document"
+                            >
+                              <EditIcon className="w-4 h-4 text-gray-400 hover:text-blue-600 transition-colors" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteDocument(doc.id, doc.title)
+                              }}
+                              className="p-2 hover:bg-red-100 rounded-md flex-shrink-0 transition-colors"
+                              title="Delete document"
+                            >
+                              <TrashIcon className="w-4 h-4 text-gray-400 hover:text-red-600 transition-colors" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 mb-4">
+                          <p className="text-gray-600 text-sm line-clamp-3">
+                            {getPreview(doc.content, 150) || 'No content yet...'}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-auto">
+                          <span className="flex items-center gap-1">
+                            <Edit3Icon className="w-3 h-3" />
+                            {wordCount} words
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <ClockIcon className="w-3 h-3" />
+                            Updated {formatDate(doc.updated_at)}
+                          </span>
                         </div>
                       </div>
                     )
