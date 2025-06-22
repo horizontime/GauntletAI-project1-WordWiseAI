@@ -92,20 +92,20 @@ export function AuthPage() {
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              WordWise AI
-            </span>
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
-          <p className="text-gray-600">Write with confidence. Edit with intelligence.</p>
+      {/* Top-left brand logo */}
+      <Link
+        to="/"
+        className="fixed top-6 left-6 z-20 inline-flex items-center space-x-2"
+      >
+        <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+          <Sparkles className="w-5 h-5 text-white" />
         </div>
+        <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          WordWise AI
+        </span>
+      </Link>
+
+      <div className="w-full max-w-md relative z-10">
 
         <div className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm rounded-lg">
           <div className="p-6 space-y-1 pb-6">
