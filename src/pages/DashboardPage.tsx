@@ -125,14 +125,14 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 flex">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/40 to-indigo-50/40 flex">
       <Sidebar />
 
       {/* Content area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b border-white/20 backdrop-blur-sm bg-white/80 sticky top-0 z-40">
-          <div className="flex h-16 items-center gap-4 px-6">
+        <header className="border-b border-gray-200/50 backdrop-blur-sm bg-white/70 sticky top-0 z-40 shadow-sm">
+          <div className="flex h-[73px] items-center gap-4 px-6">
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-sm text-gray-600">

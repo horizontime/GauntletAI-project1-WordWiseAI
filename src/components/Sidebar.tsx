@@ -14,7 +14,7 @@ export function Sidebar() {
   const isDemoUser = user && (!user.email || user.email === 'demo@wordwise.ai')
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-slate-50 to-slate-100 border-r-0 min-h-screen flex flex-col">
+    <aside className="w-64 bg-gradient-to-b from-slate-50 to-slate-100 border-r-0 min-h-screen flex flex-col shadow-xl relative z-50">
       <div className="border-b border-slate-200 p-6">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
