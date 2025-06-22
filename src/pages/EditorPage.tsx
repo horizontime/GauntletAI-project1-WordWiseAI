@@ -1320,7 +1320,7 @@ export function EditorPage() {
         <div className="flex-1 flex flex-col">
           {/* Writing Area */}
           <div className="flex-1 pt-4 px-4 pb-0">
-            <div className="w-3/4">
+            <div className={`${isSidebarCollapsed ? "w-full max-w-3xl mx-auto" : "w-3/4 ml-6"}`}>
               <EditorContent editor={editor} />
             </div>
           </div>
