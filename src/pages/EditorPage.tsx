@@ -29,7 +29,6 @@ import {
   ChevronsLeft,
   SparklesIcon,
   MoreHorizontalIcon,
-  TypeIcon,
   EyeIcon,
   DownloadIcon,
   ShareIcon,
@@ -1244,38 +1243,35 @@ export function EditorPage() {
 
           <button
             onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`p-2 rounded-md transition-colors flex items-center ${
+            className={`p-2 rounded-md transition-colors ${
               editor?.isActive("heading", { level: 1 }) 
                 ? "bg-gray-100 text-gray-900" 
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
             }`}
           >
-            <TypeIcon className="w-4 h-4 mr-2" />
-            H1
+            <Heading1Icon className="w-4 h-4" />
           </button>
 
           <button
             onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`p-2 rounded-md transition-colors flex items-center ${
+            className={`p-2 rounded-md transition-colors ${
               editor?.isActive("heading", { level: 2 }) 
                 ? "bg-gray-100 text-gray-900" 
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
             }`}
           >
-            <TypeIcon className="w-4 h-4 mr-2" />
-            H2
+            <Heading2Icon className="w-4 h-4" />
           </button>
 
           <button
             onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`p-2 rounded-md transition-colors flex items-center ${
+            className={`p-2 rounded-md transition-colors ${
               editor?.isActive("heading", { level: 3 }) 
                 ? "bg-gray-100 text-gray-900" 
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
             }`}
           >
-            <TypeIcon className="w-4 h-4 mr-2" />
-            H3
+            <Heading3Icon className="w-4 h-4" />
           </button>
 
           <div className="w-px h-6 bg-gray-300 mx-1"></div>
