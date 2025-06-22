@@ -105,22 +105,37 @@ WordWise/
 ├── tsconfig.node.json                  # Node-specific TS config
 ├── vite.config.ts                      # Vite build configuration
 ├── src/                                # Application source
-│   ├── App.tsx                         # Main application component
+│   ├── App.tsx                         # Root application component
 │   ├── main.tsx                        # Application entry point
 │   ├── index.css                       # Global styles & Tailwind imports
-│   ├── components/                     # Reusable UI components
+│   ├── components/                     # Reusable UI components & modals
+│   │   ├── GenerateTextModal.tsx
 │   │   ├── LoadingSpinner.tsx
 │   │   ├── Modal.tsx
+│   │   ├── ScoreBadge.tsx
+│   │   ├── ScrollToTop.tsx
 │   │   ├── Sidebar.tsx
-│   │   └── SuggestionSidebar.tsx
+│   │   ├── SuggestionSidebar.tsx
+│   │   ├── WritingScoreModal.tsx
+│   │   └── ui/                         # Primitive UI elements
+│   ├── extensions/                     # TipTap underline extensions
+│   │   ├── ClarityUnderline.ts
+│   │   ├── CorrectnessUnderline.ts
+│   │   ├── DeliveryUnderline.ts
+│   │   └── EngagementUnderline.ts
 │   ├── lib/                            # Utility libraries & configurations
 │   │   ├── supabase.ts
-│   │   └── textChecker.ts
+│   │   ├── textChecker.ts
+│   │   └── writingScoreService.ts
 │   ├── pages/                          # Main application pages
 │   │   ├── AccountPage.tsx
 │   │   ├── AuthPage.tsx
+│   │   ├── ContactPage.tsx
 │   │   ├── DashboardPage.tsx
 │   │   ├── EditorPage.tsx
+│   │   ├── LandingPage.tsx
+│   │   ├── PrivacyPage.tsx
+│   │   ├── TermsPage.tsx
 │   │   ├── TrashPage.tsx
 │   │   └── VersionHistoryPage.tsx
 │   ├── stores/                         # Zustand state management
@@ -128,6 +143,8 @@ WordWise/
 │   │   ├── documentStore.ts
 │   │   └── versionStore.ts
 │   └── types/                          # Shared TypeScript types
+│       ├── nspell.d.ts
+│       └── writingScore.ts
 └── README.md                           # Documentation
 ```
 
