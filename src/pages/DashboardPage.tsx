@@ -284,30 +284,14 @@ export function DashboardPage() {
                     return (
                       <div
                         key={doc.id}
-                        className="border border-gray-200 bg-gray-50/50 rounded-lg p-6 hover:shadow-lg hover:bg-white hover:border-gray-300 transition-all duration-200 cursor-pointer group min-h-[200px] flex flex-col"
+                        className="border border-gray-200 bg-gray-50/50 rounded-lg p-6 pb-3 hover:shadow-lg hover:bg-white hover:border-gray-300 transition-all duration-200 cursor-pointer group min-h-[200px] flex flex-col"
                         onClick={() => navigate(`/editor/${doc.id}`)}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                                {doc.title}
-                              </h3>
-                              {doc.writingScore && (
-                                <ScoreBadge 
-                                  score={doc.writingScore.overall} 
-                                  writingScore={doc.writingScore}
-                                  size="sm"
-                                  showLabel={true}
-                                />
-                              )}
-                              {wordCount > 0 && doc.suggestions_applied > 0 && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 flex-shrink-0">
-                                  <ZapIcon className="w-3 h-3 mr-1" />
-                                  {doc.suggestions_applied} Suggestions Applied
-                                </span>
-                              )}
-                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                              {doc.title}
+                            </h3>
                           </div>
                           <div className="flex items-center gap-1 ml-2">
                             <button
@@ -339,7 +323,25 @@ export function DashboardPage() {
                           </p>
                         </div>
                         
-                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-auto">
+                        {/* Badges section */}
+                        <div className="flex items-center gap-2 mb-3">
+                          {doc.writingScore && (
+                            <ScoreBadge 
+                              score={doc.writingScore.overall} 
+                              writingScore={doc.writingScore}
+                              size="sm"
+                              showLabel={true}
+                            />
+                          )}
+                          {wordCount > 0 && doc.suggestions_applied > 0 && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                              <ZapIcon className="w-3 h-3 mr-1" />
+                              {doc.suggestions_applied} Suggestions Applied
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-500 mt-auto -mb-3 -mx-6 px-6 pb-3">
                           <span className="flex items-center gap-1">
                             <Edit3Icon className="w-3 h-3" />
                             {wordCount} words
