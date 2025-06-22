@@ -177,15 +177,15 @@ export function LandingPage() {
               </span>
             </div>
             <div className="flex space-x-6 text-gray-600">
-              <a href="/privacy" className="hover:text-gray-900 transition-colors">
+              <Link to="/privacy" className="hover:text-gray-900 transition-colors">
                 Privacy
-              </a>
-              <a href="/terms" className="hover:text-gray-900 transition-colors">
+              </Link>
+              <Link to="/terms" className="hover:text-gray-900 transition-colors">
                 Terms
-              </a>
-              <a href="/contact" className="hover:text-gray-900 transition-colors">
+              </Link>
+              <Link to="/contact" className="hover:text-gray-900 transition-colors">
                 Contact
-              </a>
+              </Link>
             </div>
           </div>
         </div>

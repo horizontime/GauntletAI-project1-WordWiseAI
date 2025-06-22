@@ -10,6 +10,9 @@ import { TrashPage } from './pages/TrashPage'
 import { AccountPage } from './pages/AccountPage'
 import { Toaster } from 'react-hot-toast'
 import { LandingPage } from './pages/LandingPage'
+import { PrivacyPage } from './pages/PrivacyPage'
+import { TermsPage } from './pages/TermsPage'
+import { ContactPage } from './pages/ContactPage'
 
 function App() {
   const { user, loading, initialize } = useAuthStore()
@@ -56,6 +59,18 @@ function App() {
         <Route 
           path="/" 
           element={<LandingPage />} 
+        />
+        <Route 
+          path="/privacy" 
+          element={<PrivacyPage />} 
+        />
+        <Route 
+          path="/terms" 
+          element={<TermsPage />} 
+        />
+        <Route 
+          path="/contact" 
+          element={<ContactPage />} 
         />
       </Routes>
       {/* Customized global toaster styles */}
