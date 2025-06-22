@@ -216,7 +216,7 @@ export function GenerateTextModal({ isOpen, onClose, onInsert, currentText }: Ge
         {output && (
           <div className="mt-6 md:mt-0 md:w-1/2 flex flex-col">
             <h3 className="text-sm font-medium text-gray-700 mb-1">Preview</h3>
-            <div className="prose flex-1 overflow-auto border rounded-md p-3 bg-gray-50 whitespace-pre-wrap">
+            <div className="prose flex-1 overflow-auto border rounded-md p-3 bg-gray-50 whitespace-pre-wrap max-h-96">
               {output}
             </div>
             <button
