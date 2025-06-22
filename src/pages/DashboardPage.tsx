@@ -176,13 +176,7 @@ export function DashboardPage() {
     return plainText.length > maxLength ? `${plainText.slice(0, maxLength)}…` : plainText
   }
 
-  // Get status badge for document (mock data for now)
-  const getDocumentStatus = (doc: any) => {
-    const wordCount = getWordCount(doc.content)
-    if (wordCount === 0) return { status: 'Draft', className: 'bg-gray-100 text-gray-700' }
-    if (wordCount < 500) return { status: 'In Progress', className: 'bg-blue-100 text-blue-700' }
-    return { status: 'Complete', className: 'bg-green-100 text-green-700' }
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/40 to-indigo-50/40 flex">
@@ -285,7 +279,6 @@ export function DashboardPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {documents.map((doc) => {
-                    const { status, className } = getDocumentStatus(doc)
                     const wordCount = getWordCount(doc.content)
                     
                     return (
@@ -300,9 +293,6 @@ export function DashboardPage() {
                               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
                                 {doc.title}
                               </h3>
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${className} flex-shrink-0`}>
-                                {status}
-                              </span>
                               {doc.writingScore && (
                                 <ScoreBadge 
                                   score={doc.writingScore.overall} 
