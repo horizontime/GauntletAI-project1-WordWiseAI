@@ -92,6 +92,12 @@ export function DashboardPage() {
   // Calculate total words written
   const totalWords = documents.reduce((acc, doc) => acc + getWordCount(doc.content), 0)
   
+  // Calculate total suggestions applied
+  const totalSuggestionsApplied = documents.reduce((acc, doc) => {
+    const count = doc.suggestions_applied || 0
+    return acc + count
+  }, 0)
+  
   // Format word count for display
   const formatWordCount = (count: number) => {
     if (count >= 1000) {
@@ -104,7 +110,7 @@ export function DashboardPage() {
   const stats = [
     { label: 'Documents', value: documents.length.toString(), icon: FileTextIcon, color: 'text-blue-600' },
     { label: 'Words Written', value: formatWordCount(totalWords), icon: Edit3Icon, color: 'text-green-600' },
-    { label: 'Suggestions Applied', value: '189', icon: TargetIcon, color: 'text-purple-600' },
+    { label: 'Suggestions Applied', value: totalSuggestionsApplied.toString(), icon: TargetIcon, color: 'text-purple-600' },
     { label: 'Writing Score', value: '94%', icon: TrendingUpIcon, color: 'text-orange-600' },
   ]
 

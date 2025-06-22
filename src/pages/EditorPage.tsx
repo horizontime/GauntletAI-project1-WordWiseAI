@@ -97,8 +97,16 @@ export function EditorPage() {
   const { documentId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { currentDocument, loading, saving, loadDocument, saveDocument, createDocument, updateCurrentDocumentContent } =
-    useDocumentStore()
+  const { 
+    currentDocument, 
+    loading, 
+    saving, 
+    loadDocument, 
+    saveDocument, 
+    createDocument, 
+    updateCurrentDocumentContent,
+    incrementSuggestionsApplied
+  } = useDocumentStore()
 
   const { createVersion } = useVersionStore()
 
@@ -208,7 +216,7 @@ export function EditorPage() {
       window.clearTimeout(checkTimerRef.current)
     }
     checkTimerRef.current = window.setTimeout(perform, 600)
-  }, [highlightedSuggestionKeys, aiSuggestionsRef, refreshSuggestions, getHighlightKey])
+  }, [highlightedSuggestionKeys, aiSuggestionsRef, refreshSuggestions])
 
   const editor = useEditor({
     extensions: [
@@ -474,7 +482,7 @@ export function EditorPage() {
   /** Accept a suggestion – replace the offending text with the proposed fix */
   const handleAcceptSuggestion = useCallback(
     (s: Suggestion, replacement?: string) => {
-      if (!editor) return
+      if (!editor || !currentDocument) return
 
       let original: string | null = null
       let newReplacement: string | null = null
@@ -526,6 +534,10 @@ export function EditorPage() {
         })
         
         removeSuggestionById(s.id)
+
+        // Increment the suggestions applied count for this document
+        incrementSuggestionsApplied(currentDocument.id)
+
         return
       } else if (s.category === "Clarity" || s.category === "Engagement" || s.category === "Delivery") {
         const delMatch = s.excerpt.match(/<del>(.*?)<\/del>/i)
@@ -561,6 +573,9 @@ export function EditorPage() {
       })
       
       removeSuggestionById(s.id)
+
+      // Increment the suggestions applied count for this document
+      incrementSuggestionsApplied(currentDocument.id)
 
       /* --------------------------------------------------------------
        *  Recalculate decorations & suggestion indices immediately
@@ -628,7 +643,7 @@ export function EditorPage() {
     },
     // runSuggestionCheck is stable; deliberately excluded
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [editor, removeSuggestionById, refreshSuggestions],
+    [editor, removeSuggestionById, refreshSuggestions, incrementSuggestionsApplied, currentDocument],
   )
 
   /** Dismiss a suggestion and refresh underline */

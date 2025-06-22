@@ -29,6 +29,8 @@ export interface Document {
   is_deleted: boolean
   /** Timestamp (ISO string) when the document was moved to Trash. Null when not deleted. */
   deleted_at: string | null
+  /** Number of suggestions that have been applied to this document */
+  suggestions_applied: number
 }
 
 export interface DocumentVersion {
