@@ -116,7 +116,7 @@ export function VersionHistoryPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Title
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider max-w-xs">
                     Text preview
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -144,7 +144,7 @@ export function VersionHistoryPage() {
                       <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                         {doc.title}
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
+                      <td className="px-4 py-2 text-sm text-gray-700 max-w-xs truncate">
                         {getPreview(doc.content)}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700" />
@@ -170,7 +170,7 @@ export function VersionHistoryPage() {
                                 <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
                                   {v.title}
                                 </td>
-                                <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
+                                <td className="px-4 py-2 text-sm text-gray-700 max-w-xs truncate">
                                   {getPreview(v.content)}
                                 </td>
                                 <td className="px-4 py-2 text-sm text-gray-700 whitespace-nowrap">
