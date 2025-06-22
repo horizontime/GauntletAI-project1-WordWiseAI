@@ -1164,67 +1164,70 @@ export function EditorPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
       {/* Header */}
       <header className="border-b border-white/20 backdrop-blur-sm bg-white/80 sticky top-0 z-40">
-        <div className="h-16 px-4 flex items-center justify-between">
-          {/* Left section: Back button and title */}
-          <div className="flex items-center flex-1 min-w-0">
-            <button
-              onClick={handleBackClick}
-              className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors flex-shrink-0"
-            >
-              <ArrowLeftIcon className="w-4 h-4 mr-2" />
-              Back
-            </button>
+        <div className="h-16 px-4">
+          <div className={`h-full flex items-center justify-between ${isSidebarCollapsed ? "max-w-3xl mx-auto" : "mr-80"}`}>
+            {/* Left section: Back button and title */}
+            <div className="flex items-center flex-1 min-w-0">
+              <button
+                onClick={handleBackClick}
+                className="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors flex-shrink-0"
+              >
+                <ArrowLeftIcon className="w-4 h-4 mr-2" />
+                Back
+              </button>
 
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              className="text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 px-2 ml-4 flex-1 min-w-0"
-              placeholder="Untitled Document"
-            />
-          </div>
-
-          {/* Right section: Save status */}
-          <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              {!hasUnsavedChanges && !saving && (
-                <>
-                  <CheckCircleIcon className="w-4 h-4 text-green-500" />
-                  <span>Saved</span>
-                </>
-              )}
-              {saving && (
-                <span className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
-                  Saving...
-                </span>
-              )}
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                className="text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 px-2 ml-4 flex-1 min-w-0"
+                placeholder="Untitled Document"
+              />
             </div>
-            <button
-              onClick={handleManualSave}
-              disabled={saving || !hasUnsavedChanges}
-              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
-            >
-              <SaveIcon className="w-4 h-4 mr-2 inline" />
-              Save
-            </button>
+
+            {/* Right section: Save status */}
+            <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                {!hasUnsavedChanges && !saving && (
+                  <>
+                    <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                    <span>Saved</span>
+                  </>
+                )}
+                {saving && (
+                  <span className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+                    Saving...
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleManualSave}
+                disabled={saving || !hasUnsavedChanges}
+                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                <SaveIcon className="w-4 h-4 mr-2 inline" />
+                Save
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm p-4">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => editor?.chain().focus().toggleBold().run()}
-            className={`p-2 rounded-md transition-colors ${
-              editor?.isActive("bold") 
-                ? "bg-gray-100 text-gray-900" 
-                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-            }`}
-          >
-            <BoldIcon className="w-4 h-4" />
-          </button>
+      <div className="border-b border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-4">
+        <div className={`${isSidebarCollapsed ? "max-w-3xl mx-auto" : "mr-80"}`}>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => editor?.chain().focus().toggleBold().run()}
+              className={`p-2 rounded-md transition-colors ${
+                editor?.isActive("bold") 
+                  ? "bg-gray-100 text-gray-900" 
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+            >
+              <BoldIcon className="w-4 h-4" />
+            </button>
 
           <button
             onClick={() => editor?.chain().focus().toggleItalic().run()}
@@ -1298,13 +1301,14 @@ export function EditorPage() {
 
           <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
-          <button
-            onClick={() => setIsGenerateOpen(true)}
-            className="p-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 flex items-center"
-          >
-            <SparklesIcon className="w-4 h-4 mr-2" />
-            <span className="text-sm">AI writing assistant</span>
-          </button>
+            <button
+              onClick={() => setIsGenerateOpen(true)}
+              className="p-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 flex items-center"
+            >
+              <SparklesIcon className="w-4 h-4 mr-2" />
+              <span className="text-sm">AI writing assistant</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1314,30 +1318,34 @@ export function EditorPage() {
         <div className="flex-1 flex flex-col">
           {/* Writing Area */}
           <div className="flex-1 pt-4 px-4 pb-0">
-            <div className={`${isSidebarCollapsed ? "w-full max-w-3xl mx-auto" : "w-3/4 ml-6"}`}>
+            <div className={`${isSidebarCollapsed ? "w-full max-w-3xl mx-auto" : "mr-80"}`}>
               <EditorContent editor={editor} />
             </div>
           </div>
 
           {/* Status Bar */}
           <div className="border-t border-gray-200 bg-white/80 backdrop-blur-sm">
-            <div className="h-14 px-4 flex items-center justify-between">
-              {/* Left section with word count, etc */}
-              <div className="flex items-center gap-6 text-sm text-gray-600">
-                <span>Words: {wordCount}</span>
-                <span>Characters: {characterCount}</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500" style={{ width: '75%' }}></div>
+            <div className="h-14 px-4">
+              <div className={`h-full ${isSidebarCollapsed ? "max-w-3xl mx-auto" : "mr-80"}`}>
+                <div className="h-full flex items-center justify-between">
+                  {/* Left section with word count, etc */}
+                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                    <span>Words: {wordCount}</span>
+                    <span>Characters: {characterCount}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500" style={{ width: '75%' }}></div>
+                      </div>
+                      <span>Writing Score: 85%</span>
+                    </div>
                   </div>
-                  <span>Writing Score: 85%</span>
+
+                  {/* Right section - Last saved */}
+                  <span className="text-sm text-gray-600">Last saved: {currentDocument.updated_at
+                    ? new Date(currentDocument.updated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                    : "Never"}</span>
                 </div>
               </div>
-
-              {/* Right section - Last saved */}
-              <span className="text-sm text-gray-600">Last saved: {currentDocument.updated_at
-                ? new Date(currentDocument.updated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-                : "Never"}</span>
             </div>
           </div>
         </div>
