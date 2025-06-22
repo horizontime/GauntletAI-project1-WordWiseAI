@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 import { createClient } from '@supabase/supabase-js'
+import { WritingScore } from '../types/writingScore'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -31,6 +32,8 @@ export interface Document {
   deleted_at: string | null
   /** Number of suggestions that have been applied to this document */
   suggestions_applied: number
+  /** AI-calculated writing score for this document */
+  writingScore?: WritingScore
 }
 
 export interface DocumentVersion {

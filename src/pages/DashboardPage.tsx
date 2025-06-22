@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { useDocumentStore } from '../stores/documentStore'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { ScoreBadge } from '../components/ScoreBadge'
 import { 
   PlusIcon, 
   FileTextIcon, 
@@ -28,8 +29,10 @@ export function DashboardPage() {
     fetchDocuments, 
     createDocument, 
     deleteDocument,
-    restoreDocument
+    restoreDocument,
+    calculateDocumentScore
   } = useDocumentStore()
+  const [calculatingScores, setCalculatingScores] = useState(false)
   
   // Determine if the current session is a demo / guest session
   const isDemoUser = user && (!user.email || user.email === 'demo@wordwise.ai')
@@ -39,6 +42,35 @@ export function DashboardPage() {
       fetchDocuments(user.id)
     }
   }, [user, fetchDocuments])
+
+  // Automatically calculate scores for documents without scores
+  useEffect(() => {
+    const calculateMissingScores = async () => {
+      const documentsWithoutScores = documents.filter(doc => !doc.writingScore && doc.content)
+      if (documentsWithoutScores.length === 0) return
+
+      setCalculatingScores(true)
+      
+      try {
+        for (const doc of documentsWithoutScores) {
+          // Extract plain text from HTML content
+          const plainText = doc.content.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+          if (plainText.length >= 50) {
+            await calculateDocumentScore(doc.id, plainText)
+          }
+        }
+      } catch (error) {
+        console.error('Error calculating scores:', error)
+      } finally {
+        setCalculatingScores(false)
+      }
+    }
+
+    // Only run if we have documents and aren't already calculating
+    if (documents.length > 0 && !calculatingScores) {
+      calculateMissingScores()
+    }
+  }, [documents, calculatingScores, calculateDocumentScore])
 
   const handleCreateDocument = async () => {
     if (!user) return
@@ -74,6 +106,8 @@ export function DashboardPage() {
     )
   }
 
+
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -98,6 +132,14 @@ export function DashboardPage() {
     return acc + count
   }, 0)
   
+  // Calculate average writing score (only from documents with scores)
+  const documentsWithScores = documents.filter(doc => doc.writingScore?.overall !== undefined)
+  const averageScore = documentsWithScores.length > 0 
+    ? Math.round(
+        documentsWithScores.reduce((acc, doc) => acc + (doc.writingScore!.overall), 0) / documentsWithScores.length
+      )
+    : 0
+  
   // Format word count for display
   const formatWordCount = (count: number) => {
     if (count >= 1000) {
@@ -111,7 +153,19 @@ export function DashboardPage() {
     { label: 'Documents', value: documents.length.toString(), icon: FileTextIcon, color: 'text-blue-600' },
     { label: 'Words Written', value: formatWordCount(totalWords), icon: Edit3Icon, color: 'text-green-600' },
     { label: 'Suggestions Applied', value: totalSuggestionsApplied.toString(), icon: TargetIcon, color: 'text-purple-600' },
-    { label: 'Writing Score', value: '94%', icon: TrendingUpIcon, color: 'text-orange-600' },
+    { 
+      label: 'Writing Score', 
+      value: documentsWithScores.length > 0 ? `${averageScore}%` : '-', 
+      icon: TrendingUpIcon, 
+      color: 'text-orange-600',
+      subtitle: calculatingScores
+        ? 'Calculating scores...'
+        : documentsWithScores.length === 0 && documents.length > 0 
+          ? 'Calculating...' 
+          : documentsWithScores.length < documents.length 
+            ? `${documentsWithScores.length}/${documents.length} scored`
+            : undefined
+    },
   ]
 
   // Returns a plain-text preview (first ~100 chars) from the document HTML content
@@ -170,7 +224,19 @@ export function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {stat.label === 'Writing Score' && calculatingScores ? (
+                          <span className="flex items-center gap-2">
+                            <LoadingSpinner size="sm" />
+                            <span className="text-lg">Calculating...</span>
+                          </span>
+                        ) : (
+                          stat.value
+                        )}
+                      </p>
+                      {stat.subtitle && (
+                        <p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>
+                      )}
                     </div>
                     <div
                       className={`p-3 rounded-xl bg-gradient-to-r ${
@@ -237,10 +303,17 @@ export function DashboardPage() {
                               <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${className} flex-shrink-0`}>
                                 {status}
                               </span>
-                              {wordCount > 0 && Math.random() > 0.5 && (
+                              {doc.writingScore && (
+                                <ScoreBadge 
+                                  score={doc.writingScore.overall} 
+                                  writingScore={doc.writingScore}
+                                  size="sm"
+                                />
+                              )}
+                              {wordCount > 0 && doc.suggestions_applied > 0 && (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 flex-shrink-0">
                                   <ZapIcon className="w-3 h-3 mr-1" />
-                                  {Math.floor(Math.random() * 10) + 1} suggestions
+                                  {doc.suggestions_applied} suggestions
                                 </span>
                               )}
                             </div>

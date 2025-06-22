@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { supabase, Document } from '../lib/supabase'
+import { WritingScore } from '../types/writingScore'
+import { calculateWritingScore } from '../lib/writingScoreService'
 
 interface DocumentState {
   documents: Document[]
@@ -18,6 +20,7 @@ interface DocumentState {
   setCurrentDocument: (document: Document | null) => void
   updateCurrentDocumentContent: (content: string) => void
   incrementSuggestionsApplied: (documentId: string) => Promise<void>
+  calculateDocumentScore: (documentId: string, text: string) => Promise<WritingScore | null>
 }
 
 export const useDocumentStore = create<DocumentState>((set, get) => ({
@@ -30,6 +33,10 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   fetchDocuments: async (userId: string) => {
     set({ loading: true })
     try {
+      // Get existing documents to preserve their scores
+      const { documents: existingDocs } = get()
+      const scoreMap = new Map(existingDocs.map(doc => [doc.id, doc.writingScore]))
+      
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -38,7 +45,14 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         .order('updated_at', { ascending: false })
 
       if (error) throw error
-      set({ documents: data || [], loading: false })
+      
+      // Preserve writing scores from existing documents
+      const documentsWithScores = (data || []).map(doc => {
+        const existingScore = scoreMap.get(doc.id)
+        return existingScore ? { ...doc, writingScore: existingScore } : doc
+      })
+      
+      set({ documents: documentsWithScores, loading: false })
     } catch (error) {
       console.error('Error fetching documents:', error)
       set({ loading: false })
@@ -105,6 +119,10 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   loadDocument: async (documentId: string) => {
     set({ loading: true })
     try {
+      // First check if we already have this document with a score in memory
+      const { documents } = get()
+      const existingDoc = documents.find(doc => doc.id === documentId)
+      
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -112,7 +130,13 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
         .single()
 
       if (error) throw error
-      set({ currentDocument: data, loading: false })
+      
+      // Preserve the writing score if it exists in memory
+      const documentToSet = existingDoc?.writingScore 
+        ? { ...data, writingScore: existingDoc.writingScore }
+        : data
+      
+      set({ currentDocument: documentToSet, loading: false })
     } catch (error) {
       console.error('Error loading document:', error)
       set({ loading: false })
@@ -134,14 +158,21 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
       if (error) throw error
 
+      // Calculate writing score after successful save
+      const plainText = content.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+      const writingScore = await calculateWritingScore(plainText)
+      
+      // Update the document with the writing score
+      const documentWithScore = { ...data, writingScore }
+
       const { documents, currentDocument } = get()
       const updatedDocuments = documents.map(doc => 
-        doc.id === documentId ? data : doc
+        doc.id === documentId ? documentWithScore : doc
       )
       
       set({ 
         documents: updatedDocuments,
-        currentDocument: currentDocument?.id === documentId ? data : currentDocument,
+        currentDocument: currentDocument?.id === documentId ? documentWithScore : currentDocument,
         saving: false 
       })
     } catch (error) {
@@ -234,6 +265,32 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
     }
   },
 
+  calculateDocumentScore: async (documentId: string, text: string): Promise<WritingScore | null> => {
+    try {
+      const writingScore = await calculateWritingScore(text)
+      
+      const { documents, currentDocument } = get()
+      const document = documents.find(doc => doc.id === documentId)
+      
+      if (document) {
+        const documentWithScore = { ...document, writingScore }
+        const updatedDocuments = documents.map(doc => 
+          doc.id === documentId ? documentWithScore : doc
+        )
+        
+        set({ 
+          documents: updatedDocuments,
+          currentDocument: currentDocument?.id === documentId ? documentWithScore : currentDocument
+        })
+      }
+      
+      return writingScore
+    } catch (error) {
+      console.error('Error calculating document score:', error)
+      return null
+    }
+  },
+
   fetchTrashedDocuments: async (userId: string) => {
     set({ loading: true })
     try {
@@ -275,7 +332,14 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
 
       const { trashedDocuments, documents } = get()
       const updatedTrash = trashedDocuments.filter(doc => doc.id !== documentId)
-      set({ trashedDocuments: updatedTrash, documents: [data, ...documents] })
+      
+      // Check if the restored document had a score in trash
+      const trashedDoc = trashedDocuments.find(doc => doc.id === documentId)
+      const restoredDoc = trashedDoc?.writingScore 
+        ? { ...data, writingScore: trashedDoc.writingScore }
+        : data
+      
+      set({ trashedDocuments: updatedTrash, documents: [restoredDoc, ...documents] })
     } catch (error) {
       console.error('Error restoring document:', error)
     }

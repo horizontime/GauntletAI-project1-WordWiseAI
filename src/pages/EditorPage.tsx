@@ -15,6 +15,7 @@ import { useAuthStore } from "../stores/authStore"
 import { useDocumentStore } from "../stores/documentStore"
 import { useVersionStore } from "../stores/versionStore"
 import { LoadingSpinner } from "../components/LoadingSpinner"
+import { ScoreBadge } from "../components/ScoreBadge"
 import {
   BoldIcon,
   ItalicIcon,
@@ -105,13 +106,15 @@ export function EditorPage() {
     saveDocument, 
     createDocument, 
     updateCurrentDocumentContent,
-    incrementSuggestionsApplied
+    incrementSuggestionsApplied,
+    calculateDocumentScore
   } = useDocumentStore()
 
   const { createVersion } = useVersionStore()
 
   const [title, setTitle] = useState("")
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [scoreLoading, setScoreLoading] = useState(false)
 
   // ------------------------------------------------------------
   // Suggestion management
@@ -288,6 +291,30 @@ export function EditorPage() {
     const timeout = window.setTimeout(autoSave, 1000) // 1 s idle period
     return () => window.clearTimeout(timeout)
   }, [hasUnsavedChanges, autoSave])
+
+  // Calculate score after document is saved
+  useEffect(() => {
+    if (hasUnsavedChanges || !currentDocument?.content || scoreLoading) return
+    
+    const calculateScore = async () => {
+      if (!editor) return
+      setScoreLoading(true)
+      try {
+        const plainText = editor.getText()
+        await calculateDocumentScore(currentDocument.id, plainText)
+      } catch (error) {
+        console.error('Error calculating score:', error)
+      } finally {
+        setScoreLoading(false)
+      }
+    }
+    
+    // Only calculate score if we don't already have one or if content has changed
+    if (!currentDocument.writingScore || 
+        new Date(currentDocument.updated_at) > new Date(currentDocument.writingScore.lastCalculated)) {
+      calculateScore()
+    }
+  }, [hasUnsavedChanges, currentDocument, editor, calculateDocumentScore, scoreLoading])
 
   /* ------------------------------------------------------------------
    * Manual interactions – save, title change, and navigation
@@ -1333,10 +1360,20 @@ export function EditorPage() {
                     <span>Words: {wordCount}</span>
                     <span>Characters: {characterCount}</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500" style={{ width: '75%' }}></div>
-                      </div>
-                      <span>Writing Score: 85%</span>
+                      <span>Writing Score:</span>
+                      {scoreLoading ? (
+                        <LoadingSpinner size="sm" />
+                      ) : currentDocument?.writingScore ? (
+                        <ScoreBadge 
+                          score={currentDocument.writingScore.overall} 
+                          writingScore={currentDocument.writingScore}
+                          size="sm"
+                        />
+                      ) : (
+                        <span className="text-gray-500 text-sm" title="Score will be calculated after saving">
+                          Not calculated
+                        </span>
+                      )}
                     </div>
                   </div>
 
