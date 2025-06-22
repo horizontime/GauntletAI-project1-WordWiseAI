@@ -110,7 +110,7 @@ export function SuggestionSidebar({
   }
 
   return (
-    <aside className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl flex flex-col z-20">
+    <aside className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl flex flex-col z-50">
       {/* Header with collapse button */}
       <div className="flex items-center justify-between px-4 py-4 border-gray-200 bg-white">
         <button
@@ -151,7 +151,7 @@ export function SuggestionSidebar({
                 </span>
               </button>
               {/* Tooltip */}
-              <span className={`${key === 'Delivery' ? 'ml-[-60px]' : ''} absolute left-1/2 -translate-x-1/2 -top-12 bg-gray-700 text-white text-xs font-medium px-2 py-1 rounded opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-[1000ms] w-48 text-center whitespace-normal break-words pointer-events-none z-10`}>
+              <span className={`${key === 'Delivery' ? 'ml-[-60px]' : ''} absolute left-1/2 -translate-x-1/2 -top-12 bg-gray-700 text-white text-xs font-medium px-2 py-1 rounded opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-[1000ms] w-48 text-center whitespace-normal break-words pointer-events-none z-[60]`}>
                 {tooltipText[key]}
               </span>
             </div>
